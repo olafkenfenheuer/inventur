@@ -1,8 +1,41 @@
-# Inventur
+<p align="center">
+  <img src="docs/screenshots/icon.png" width="96" alt="App-Icon">
+</p>
 
-Android-App zur Inventur mit dem Bluetooth-Barcodescanner **Inateck BCST-47**.
-Gescannte Inventarnummern werden mit Zeitstempel erfasst und lassen sich als
-CSV-Datei teilen.
+<h1 align="center">Inventur</h1>
+
+<p align="center">
+  Android-App für die Inventur mit dem Bluetooth-Barcodescanner <b>Inateck BCST-47</b>.
+</p>
+
+## Überblick
+
+**Inventur** ist eine schlanke Android-App, um bei einer Bestandsaufnahme
+Inventarnummern per Bluetooth-Scanner zu erfassen. Jede gescannte Nummer wird
+mit Datum und Uhrzeit als eigene Position gespeichert, versehentliche Doppel-Scans
+werden erkannt und rot markiert, und die fertige Liste lässt sich als CSV-Datei
+teilen (z. B. per E-Mail oder in eine Tabellenkalkulation).
+
+Der Scanner koppelt sich als Bluetooth-Tastatur (**HID-Modus**) und „tippt" jede
+Inventarnummer gefolgt von Enter – die App fängt diese Eingaben ab und trägt sie
+automatisch in die Liste ein. Ein separater Scanner-Bildschirm nutzt das
+[Inateck Scanner SDK](https://github.com/Inateck-Technology-Inc/android_sdk), um
+den BCST-47 zu verbinden, seinen Status zu prüfen (Akku, Version) und ihn zu
+konfigurieren.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/main.png" width="240" alt="Inventurliste mit Zeitstempeln, Duplikat-Markierung und Bemerkungen">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/note.png" width="240" alt="Bemerkung zu einem Scan erfassen">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/scanner.png" width="240" alt="Scanner verbinden und konfigurieren">
+</p>
+
+<p align="center">
+  <i>Inventurliste &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Scanner verbinden</i>
+</p>
 
 ## Funktionen
 
@@ -12,20 +45,29 @@ CSV-Datei teilen.
 - **Ein Eintrag pro Scan** mit sekundengenauem Datum/Uhrzeit – keine Mengen,
   Inventarnummern sind eindeutig.
 - **Duplikat-Erkennung:** versehentlich doppelt gescannte Nummern werden rot
-  hervorgehoben.
+  hervorgehoben und als „Duplikate" gezählt.
 - **Bemerkungen** je Scan – per Long-Press oder Bearbeiten-Button.
 - **Löschen mit Bestätigung** (einzeln und ganze Liste).
 - **CSV-Export & Teilen** (`;`-getrennt, UTF-8 mit BOM für Excel; Spalten:
   Nr, Inventarnummer, Zeitpunkt, Bemerkung).
+- **Persistenz:** die Liste übersteht einen Neustart (lokale JSON-Datei).
 - **SDK-Screen** zum Verbinden/Konfigurieren des Scanners (Akku, Version,
-  Umschalten auf HID + Enter, Lautstärke) über das
-  [Inateck Scanner SDK](https://github.com/Inateck-Technology-Inc/android_sdk).
+  Umschalten auf HID + Enter, Lautstärke).
+
+## So funktioniert das Scannen
+
+1. BCST-47 im **HID-Tastaturmodus** mit dem Gerät koppeln (bei Bedarf über den
+   Scanner-Screen der App auf „HID + Enter" umstellen).
+2. App öffnen und scannen – die Inventarnummern erscheinen automatisch mit
+   Zeitstempel in der Liste.
+3. Bei Bedarf Bemerkungen ergänzen und Fehlscans löschen.
+4. Über das Teilen-Symbol die CSV exportieren.
 
 ## Architektur-Hinweis
 
 Das Inateck BLE-SDK (`inateck-scanner-ble-2.0.0`) besitzt **keinen öffentlichen
 Echtzeit-Callback für gescannte Barcodes** – interne Notify-Daten werden verworfen,
-wenn kein Konfigurationsbefehl läuft. Das SDK dient daher nur zum Verbinden,
+wenn gerade kein Konfigurationsbefehl läuft. Das SDK dient daher nur zum Verbinden,
 Abfragen und Konfigurieren. Der eigentliche Scan-Empfang läuft über den
 **HID-Tastaturmodus**. Deshalb der Hybrid-Ansatz.
 
@@ -48,11 +90,5 @@ arm64.
 ```
 
 Benötigt ein vollständiges JDK 17+ (in Android Studio wird automatisch das
-gebündelte JBR genutzt).
-
-## Bedienung
-
-1. BCST-47 im HID-Tastaturmodus mit dem Gerät koppeln (bei Bedarf über den
-   SDK-Screen der App auf „HID + Enter" umstellen).
-2. App öffnen und scannen – die Inventarnummern erscheinen automatisch.
-3. Über das Teilen-Symbol die CSV exportieren.
+gebündelte JBR genutzt). Die fertige APK liegt danach unter
+`app/build/outputs/apk/debug/app-debug.apk`.
