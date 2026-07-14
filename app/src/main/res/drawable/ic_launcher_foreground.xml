@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Barcode-Balken (weiss), zentriert innerhalb der Safe-Zone -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M25.2,30h2.4v48h-2.4z
+M30,30h3.6v48h-3.6z
+M36,30h1.8v48h-1.8z
+M39.6,30h4.8v48h-4.8z
+M46.8,30h2.4v48h-2.4z
+M51.6,30h3v48h-3z
+M56.4,30h4.8v48h-4.8z
+M63.6,30h1.8v48h-1.8z
+M67.2,30h3.6v48h-3.6z
+M73.2,30h2.4v48h-2.4z
+M78,30h4.2v48h-4.2z" />
+    <!-- Scan-Linie (rot) mit runden Enden -->
+    <path
+        android:pathData="M20.4,54L87.6,54"
+        android:strokeColor="#FFE53935"
+        android:strokeWidth="6"
+        android:strokeLineCap="round" />
+</vector>
