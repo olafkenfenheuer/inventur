@@ -28,13 +28,15 @@ konfigurieren.
 <p align="center">
   <img src="docs/screenshots/main.png" width="240" alt="Inventurliste mit Zeitstempeln, Duplikat-Markierung und Bemerkungen">
   &nbsp;&nbsp;
+  <img src="docs/screenshots/manual.png" width="240" alt="Inventarnummer von Hand eingeben">
+  &nbsp;&nbsp;
   <img src="docs/screenshots/note.png" width="240" alt="Bemerkung zu einem Scan erfassen">
   &nbsp;&nbsp;
   <img src="docs/screenshots/scanner.png" width="240" alt="Scanner verbinden und konfigurieren">
 </p>
 
 <p align="center">
-  <i>Inventurliste &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Scanner verbinden</i>
+  <i>Inventurliste &nbsp;·&nbsp; Nummer von Hand eingeben &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Scanner verbinden</i>
 </p>
 
 ## Funktionen
@@ -42,6 +44,10 @@ konfigurieren.
 - **Scannen per HID-Tastaturmodus:** Der BCST-47 wird als Bluetooth-Tastatur
   gekoppelt und „tippt" jede Inventarnummer + Enter. Die App fängt das global ab
   (`MainActivity.dispatchKeyEvent`) und legt jeden Scan als eigene Position an.
+- **Manuelle Eingabe** über den Button „Nummer eingeben": Ist ein Barcode
+  beschädigt oder nicht lesbar, lässt sich die Inventarnummer von Hand erfassen.
+  Sie landet über denselben Weg wie ein Scan in der Liste (inkl. Zeitstempel und
+  Duplikat-Erkennung); während der Eingabe pausiert die HID-Scan-Erfassung.
 - **Ein Eintrag pro Scan** mit sekundengenauem Datum/Uhrzeit – keine Mengen,
   Inventarnummern sind eindeutig.
 - **Duplikat-Erkennung:** versehentlich doppelt gescannte Nummern werden rot
@@ -60,8 +66,10 @@ konfigurieren.
    Scanner-Screen der App auf „HID + Enter" umstellen).
 2. App öffnen und scannen – die Inventarnummern erscheinen automatisch mit
    Zeitstempel in der Liste.
-3. Bei Bedarf Bemerkungen ergänzen und Fehlscans löschen.
-4. Über das Teilen-Symbol die CSV exportieren.
+3. Ist ein Barcode nicht lesbar, über den Button **„Nummer eingeben"** die
+   Inventarnummer von Hand erfassen.
+4. Bei Bedarf Bemerkungen ergänzen und Fehlscans löschen.
+5. Über das Teilen-Symbol die CSV exportieren.
 
 ## Architektur-Hinweis
 
