@@ -3,24 +3,56 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Barcode-Balken (weiss), zentriert innerhalb der Safe-Zone -->
+
+    <!-- Klemmbrett-Koerper (weiss) -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M25.2,30h2.4v48h-2.4z
-M30,30h3.6v48h-3.6z
-M36,30h1.8v48h-1.8z
-M39.6,30h4.8v48h-4.8z
-M46.8,30h2.4v48h-2.4z
-M51.6,30h3v48h-3z
-M56.4,30h4.8v48h-4.8z
-M63.6,30h1.8v48h-1.8z
-M67.2,30h3.6v48h-3.6z
-M73.2,30h2.4v48h-2.4z
-M78,30h4.2v48h-4.2z" />
-    <!-- Scan-Linie (rot) mit runden Enden -->
+        android:pathData="M39,30 h30
+            a5,5 0 0 1 5,5 v44
+            a5,5 0 0 1 -5,5 h-30
+            a5,5 0 0 1 -5,-5 v-44
+            a5,5 0 0 1 5,-5 z" />
+
+    <!-- Klemme oben -->
     <path
-        android:pathData="M20.4,54L87.6,54"
-        android:strokeColor="#FFE53935"
-        android:strokeWidth="6"
-        android:strokeLineCap="round" />
+        android:fillColor="#FF16386B"
+        android:pathData="M50,24 h8
+            a3,3 0 0 1 3,3 v5
+            a3,3 0 0 1 -3,3 h-8
+            a3,3 0 0 1 -3,-3 v-5
+            a3,3 0 0 1 3,-3 z" />
+
+    <!-- Barcode-Balken (dunkelblau) -->
+    <path
+        android:fillColor="#FF16386B"
+        android:pathData="M40,44h2v18h-2z
+            M45,44h3v18h-3z
+            M50,44h1.5v18h-1.5z
+            M53.5,44h4v18h-4z
+            M59.5,44h2v18h-2z
+            M63.5,44h3v18h-3z
+            M68,44h1.5v18h-1.5z" />
+
+    <!-- Listen-Zeilen unter dem Barcode -->
+    <path
+        android:strokeColor="#FF9DB4D6"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M40,69 H57" />
+    <path
+        android:strokeColor="#FF9DB4D6"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M40,75 H52" />
+
+    <!-- Haekchen-Badge (gruen) -->
+    <path
+        android:fillColor="#FF2E7D32"
+        android:pathData="M62.5,75 a10.5,10.5 0 1 0 21,0 a10.5,10.5 0 1 0 -21,0 z" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M68,75.5 L71.5,79 L78,71.5" />
 </vector>
