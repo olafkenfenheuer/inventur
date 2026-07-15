@@ -26,17 +26,23 @@ konfigurieren.
 ## Screenshots
 
 <p align="center">
+  <img src="docs/screenshots/splash.png" width="240" alt="Startbildschirm mit App-Icon und Copyright">
+  &nbsp;&nbsp;
   <img src="docs/screenshots/main.png" width="240" alt="Inventurliste mit Zeitstempeln, Duplikat-Markierung und Bemerkungen">
   &nbsp;&nbsp;
   <img src="docs/screenshots/manual.png" width="240" alt="Inventarnummer von Hand eingeben">
-  &nbsp;&nbsp;
-  <img src="docs/screenshots/note.png" width="240" alt="Bemerkung zu einem Scan erfassen">
-  &nbsp;&nbsp;
-  <img src="docs/screenshots/scanner.png" width="240" alt="Scanner verbinden und konfigurieren">
 </p>
 
 <p align="center">
-  <i>Inventurliste &nbsp;·&nbsp; Nummer von Hand eingeben &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Scanner verbinden</i>
+  <img src="docs/screenshots/note.png" width="240" alt="Bemerkung zu einem Scan erfassen">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/scanner.png" width="240" alt="Scanner verbinden und konfigurieren">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/about.png" width="240" alt="Über die App mit Version und Copyright">
+</p>
+
+<p align="center">
+  <i>Startbildschirm &nbsp;·&nbsp; Inventurliste &nbsp;·&nbsp; Nummer von Hand eingeben &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Scanner verbinden &nbsp;·&nbsp; Über die App</i>
 </p>
 
 ## Funktionen
@@ -59,6 +65,8 @@ konfigurieren.
 - **Persistenz:** die Liste übersteht einen Neustart (lokale JSON-Datei).
 - **SDK-Screen** zum Verbinden/Konfigurieren des Scanners (Akku, Version,
   Umschalten auf HID + Enter, Lautstärke).
+- **Startbildschirm & „Über die App"** mit App-Version und Copyright-Hinweis
+  (Menü oben rechts).
 
 ## So funktioniert das Scannen
 
