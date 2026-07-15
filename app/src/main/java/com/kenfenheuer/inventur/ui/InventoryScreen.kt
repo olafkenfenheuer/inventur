@@ -24,13 +24,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -69,6 +73,8 @@ import java.util.Locale
 
 private val rowTimeFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.GERMANY)
 
+const val COPYRIGHT_NOTICE = "© 2026 Olaf Kenfenheuer"
+
 private fun Context.findMainActivity(): MainActivity? {
     var ctx: Context? = this
     while (ctx is ContextWrapper) {
@@ -90,6 +96,8 @@ fun InventoryScreen(
 
     var showClearDialog by remember { mutableStateOf(false) }
     var showManualDialog by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
     var noteTarget by remember { mutableStateOf<ScanEntry?>(null) }
     var deleteTarget by remember { mutableStateOf<ScanEntry?>(null) }
 
@@ -121,6 +129,26 @@ fun InventoryScreen(
                         onClick = { showClearDialog = true },
                     ) {
                         Icon(Icons.Filled.DeleteSweep, contentDescription = "Liste leeren")
+                    }
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = "Weitere Optionen")
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Über die App") },
+                                leadingIcon = {
+                                    Icon(Icons.Filled.Info, contentDescription = null)
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    showAboutDialog = true
+                                },
+                            )
+                        }
                     }
                 },
             )
@@ -183,6 +211,10 @@ fun InventoryScreen(
                 TextButton(onClick = { showClearDialog = false }) { Text("Abbrechen") }
             },
         )
+    }
+
+    if (showAboutDialog) {
+        AboutDialog(onDismiss = { showAboutDialog = false })
     }
 
     if (showManualDialog) {
@@ -360,6 +392,46 @@ private fun ScanRow(
             }
         }
     }
+}
+
+@Composable
+private fun AboutDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val versionName = remember {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull().orEmpty()
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Filled.Info, contentDescription = null) },
+        title = { Text("Inventur") },
+        text = {
+            Column {
+                if (versionName.isNotEmpty()) {
+                    Text(
+                        text = "Version $versionName",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.size(8.dp))
+                }
+                Text(
+                    text = COPYRIGHT_NOTICE,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.size(4.dp))
+                Text(
+                    text = "Alle Rechte vorbehalten.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("OK") }
+        },
+    )
 }
 
 @Composable
