@@ -18,10 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
@@ -29,6 +32,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +44,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,10 +52,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.kenfenheuer.inventur.MainActivity
 import com.kenfenheuer.inventur.data.CsvExporter
@@ -81,6 +89,7 @@ fun InventoryScreen(
     val lastScanned by viewModel.lastScanned.collectAsState()
 
     var showClearDialog by remember { mutableStateOf(false) }
+    var showManualDialog by remember { mutableStateOf(false) }
     var noteTarget by remember { mutableStateOf<ScanEntry?>(null) }
     var deleteTarget by remember { mutableStateOf<ScanEntry?>(null) }
 
@@ -116,6 +125,13 @@ fun InventoryScreen(
                 },
             )
         },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { showManualDialog = true },
+                icon = { Icon(Icons.Filled.Keyboard, contentDescription = null) },
+                text = { Text("Nummer eingeben") },
+            )
+        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -133,7 +149,9 @@ fun InventoryScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(12.dp),
+                    // Unten extra Platz, damit der letzte Eintrag ueber den FAB
+                    // gescrollt werden kann und dessen Buttons nicht verdeckt werden.
+                    contentPadding = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(items, key = { it.id }) { entry ->
@@ -163,6 +181,17 @@ fun InventoryScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showClearDialog = false }) { Text("Abbrechen") }
+            },
+        )
+    }
+
+    if (showManualDialog) {
+        ManualEntryDialog(
+            onDismiss = { showManualDialog = false },
+            onSave = { barcode ->
+                viewModel.addScan(barcode)
+                showManualDialog = false
+                Toast.makeText(context, "Inventarnummer erfasst", Toast.LENGTH_SHORT).show()
             },
         )
     }
@@ -331,6 +360,61 @@ private fun ScanRow(
             }
         }
     }
+}
+
+@Composable
+private fun ManualEntryDialog(
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    var text by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+
+    // HID-Scan-Erfassung pausieren, damit die Bildschirmtastatur das Eingabefeld
+    // erreicht und Tastendruecke nicht als Scan interpretiert werden.
+    DisposableEffect(Unit) {
+        val activity = context.findMainActivity()
+        activity?.scanCaptureEnabled = false
+        onDispose { activity?.scanCaptureEnabled = true }
+    }
+
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    val save = { if (text.isNotBlank()) onSave(text) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Inventarnummer eingeben") },
+        text = {
+            Column {
+                Text(
+                    text = "Falls ein Barcode nicht lesbar ist, kannst du die " +
+                        "Inventarnummer hier von Hand erfassen.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.size(8.dp))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("Inventarnummer") },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { save() }),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = save, enabled = text.isNotBlank()) { Text("Erfassen") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Abbrechen") }
+        },
+    )
 }
 
 @Composable
