@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [1.4 (5)] – 2026-07-17
+
+Neuer Play-Store-Upload. Keine funktionalen App-Änderungen gegenüber 1.3.
+
+### Geändert
+- Version auf 1.4 (versionCode 5) angehoben für einen neuen Play-Store-Upload.
+
+### Hinzugefügt
+- Vollständige Play-Store-Grafiken: 512×512-Icon, Feature-Grafik 1024×500,
+  hochauflösende Screenshots (1080×2400) unter `docs/`.
+
 ## [1.3 (4)] – 2026-07-17
 
 Erste Veröffentlichung im Google Play Store.
