@@ -7,6 +7,7 @@ import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -79,6 +80,9 @@ fun CameraScanScreen(
     onBarcode: (String) -> Unit,
 ) {
     val context = LocalContext.current
+
+    // System-Zurück soll zur Inventurliste fuehren, nicht die App schliessen.
+    BackHandler(onBack = onBack)
 
     var hasPermission by remember {
         mutableStateOf(

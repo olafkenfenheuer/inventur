@@ -41,6 +41,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -168,11 +169,10 @@ fun InventoryScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                ExtendedFloatingActionButton(
-                    onClick = onOpenCameraScan,
-                    icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
-                    text = { Text("Kamera-Scan") },
-                )
+                // Kompakter Icon-FAB, damit die Zeile auch auf schmalen Geraeten passt.
+                FloatingActionButton(onClick = onOpenCameraScan) {
+                    Icon(Icons.Filled.QrCodeScanner, contentDescription = "Kamera-Scan")
+                }
                 ExtendedFloatingActionButton(
                     onClick = { showManualDialog = true },
                     icon = { Icon(Icons.Filled.Keyboard, contentDescription = null) },

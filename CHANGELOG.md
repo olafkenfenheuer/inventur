@@ -4,6 +4,19 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [1.5 (6)] – 2026-07-18
+
+### Hinzugefügt
+- Inventurscan per Gerätekamera (ZXing) als Alternative zum Bluetooth-Scanner:
+  fortlaufender Scan mit Ton-/Vibrationsrückmeldung, Taschenlampen-Schalter und
+  Duplikat-Entprellung. Das Kamerabild wird ausschließlich lokal und in Echtzeit
+  verarbeitet.
+- Kamera-Scan über einen eigenen FAB neben „Nummer eingeben" erreichbar.
+
+### Geändert
+- Version auf 1.5 (versionCode 6) angehoben.
+- Datenschutzerklärung und Data-Safety-Angaben um den Kamera-Zugriff ergänzt.
+
 ## [1.4 (5)] – 2026-07-17
 
 Neuer Play-Store-Upload. Keine funktionalen App-Änderungen gegenüber 1.3.
