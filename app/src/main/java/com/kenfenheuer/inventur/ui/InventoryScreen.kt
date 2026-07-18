@@ -72,6 +72,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.kenfenheuer.inventur.MainActivity
 import com.kenfenheuer.inventur.R
@@ -313,19 +314,28 @@ private fun SummaryBar(scans: Int, duplicates: Int, lastScanned: String?) {
 @Composable
 private fun EmptyHint() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Noch keine Inventarnummern erfasst", style = MaterialTheme.typography.titleMedium)
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                "Noch keine Inventarnummern erfasst",
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+            )
             Spacer(Modifier.size(8.dp))
             Text(
                 "Scanne eine Inventarnummer mit dem gekoppelten BCST-47.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.size(4.dp))
             Text(
                 "Tipp: langes Tippen auf einen Scan fügt eine Bemerkung hinzu.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
         }
     }
