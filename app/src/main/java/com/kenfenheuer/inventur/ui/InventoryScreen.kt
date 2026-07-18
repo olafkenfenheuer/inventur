@@ -41,6 +41,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -189,37 +190,44 @@ fun InventoryScreen(
                 )
             }
         },
+        // Zentriert die FAB-Gruppe, damit der Randabstand links und rechts gleich ist.
+        floatingActionButtonPosition = FabPosition.Center,
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            SummaryBar(
-                scans = items.size,
-                duplicates = duplicates.size,
-                lastScanned = lastScanned,
-            )
+            Column(modifier = Modifier.fillMaxSize()) {
+                SummaryBar(
+                    scans = items.size,
+                    duplicates = duplicates.size,
+                    lastScanned = lastScanned,
+                )
 
-            if (items.isEmpty()) {
-                EmptyHint()
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    // Unten extra Platz, damit der letzte Eintrag ueber den FAB
-                    // gescrollt werden kann und dessen Buttons nicht verdeckt werden.
-                    contentPadding = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 88.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(items, key = { it.id }) { entry ->
-                        ScanRow(
-                            entry = entry,
-                            isDuplicate = entry.barcode in duplicates,
-                            onEditNote = { noteTarget = entry },
-                            onDelete = { deleteTarget = entry },
-                        )
+                if (items.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        // Unten extra Platz, damit der letzte Eintrag ueber den FAB
+                        // gescrollt werden kann und dessen Buttons nicht verdeckt werden.
+                        contentPadding = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 88.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(items, key = { it.id }) { entry ->
+                            ScanRow(
+                                entry = entry,
+                                isDuplicate = entry.barcode in duplicates,
+                                onEditNote = { noteTarget = entry },
+                                onDelete = { deleteTarget = entry },
+                            )
+                        }
                     }
                 }
+            }
+
+            // Leerhinweis ueber der gesamten Inhaltsflaeche vertikal zentrieren.
+            if (items.isEmpty()) {
+                EmptyHint(modifier = Modifier.align(Alignment.Center))
             }
         }
     }
@@ -320,8 +328,8 @@ private fun SummaryBar(scans: Int, duplicates: Int, lastScanned: String?) {
 }
 
 @Composable
-private fun EmptyHint() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+private fun EmptyHint(modifier: Modifier = Modifier) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
