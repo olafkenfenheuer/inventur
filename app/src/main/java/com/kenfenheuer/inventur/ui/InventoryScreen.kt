@@ -66,6 +66,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -170,9 +171,18 @@ fun InventoryScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // Kompakter Icon-FAB, damit die Zeile auch auf schmalen Geraeten passt.
-                FloatingActionButton(onClick = onOpenCameraScan) {
-                    Icon(Icons.Filled.QrCodeScanner, contentDescription = "Kamera-Scan")
+                // Auf breiten Bildschirmen beide FABs mit Text; auf schmalen den
+                // Kamera-FAB nur als Icon, damit die Zeile nicht umbricht.
+                if (LocalConfiguration.current.screenWidthDp >= 380) {
+                    ExtendedFloatingActionButton(
+                        onClick = onOpenCameraScan,
+                        icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
+                        text = { Text("Kamera-Scan") },
+                    )
+                } else {
+                    FloatingActionButton(onClick = onOpenCameraScan) {
+                        Icon(Icons.Filled.QrCodeScanner, contentDescription = "Kamera-Scan")
+                    }
                 }
                 ExtendedFloatingActionButton(
                     onClick = { showManualDialog = true },
