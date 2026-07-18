@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [1.6 (7)] – 2026-07-18
+
+### Geändert
+- Kamera-Scan-FAB responsiv: auf breiten Bildschirmen mit Text „Kamera-Scan",
+  auf schmalen mit Kurzlabel „Kamera".
+- FAB-Gruppe zentriert (gleicher Randabstand links/rechts).
+- Leerhinweis („Noch keine Inventarnummern …") vertikal zentriert und mit
+  seitlichem Rand.
+- System-Zurück im Kamera-Scan kehrt zur Inventurliste zurück.
+- Version auf 1.6 (versionCode 7) angehoben.
+
 ## [1.5 (6)] – 2026-07-18
 
 ### Hinzugefügt
