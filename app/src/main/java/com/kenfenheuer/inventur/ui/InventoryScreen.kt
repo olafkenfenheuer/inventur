@@ -41,7 +41,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -171,19 +170,18 @@ fun InventoryScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // Auf breiten Bildschirmen beide FABs mit Text; auf schmalen den
-                // Kamera-FAB nur als Icon, damit die Zeile nicht umbricht.
-                if (LocalConfiguration.current.screenWidthDp >= 380) {
-                    ExtendedFloatingActionButton(
-                        onClick = onOpenCameraScan,
-                        icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
-                        text = { Text("Kamera-Scan") },
-                    )
+                // Auf schmalen Bildschirmen kuerzeres Label ("Kamera"), damit beide
+                // FABs ohne Umbruch nebeneinander passen; sonst "Kamera-Scan".
+                val cameraLabel = if (LocalConfiguration.current.screenWidthDp >= 380) {
+                    "Kamera-Scan"
                 } else {
-                    FloatingActionButton(onClick = onOpenCameraScan) {
-                        Icon(Icons.Filled.QrCodeScanner, contentDescription = "Kamera-Scan")
-                    }
+                    "Kamera"
                 }
+                ExtendedFloatingActionButton(
+                    onClick = onOpenCameraScan,
+                    icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
+                    text = { Text(cameraLabel) },
+                )
                 ExtendedFloatingActionButton(
                     onClick = { showManualDialog = true },
                     icon = { Icon(Icons.Filled.Keyboard, contentDescription = null) },
