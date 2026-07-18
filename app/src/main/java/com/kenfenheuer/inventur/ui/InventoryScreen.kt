@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
@@ -97,6 +98,7 @@ private fun Context.findMainActivity(): MainActivity? {
 fun InventoryScreen(
     viewModel: InventoryViewModel,
     onOpenScanner: () -> Unit,
+    onOpenCameraScan: () -> Unit,
 ) {
     val context = LocalContext.current
     val items by viewModel.items.collectAsState()
@@ -162,11 +164,21 @@ fun InventoryScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { showManualDialog = true },
-                icon = { Icon(Icons.Filled.Keyboard, contentDescription = null) },
-                text = { Text("Nummer eingeben") },
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ExtendedFloatingActionButton(
+                    onClick = onOpenCameraScan,
+                    icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
+                    text = { Text("Kamera-Scan") },
+                )
+                ExtendedFloatingActionButton(
+                    onClick = { showManualDialog = true },
+                    icon = { Icon(Icons.Filled.Keyboard, contentDescription = null) },
+                    text = { Text("Nummer eingeben") },
+                )
+            }
         },
     ) { padding ->
         Column(

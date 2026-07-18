@@ -9,7 +9,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 
-enum class Screen { Inventory, Scanner }
+enum class Screen { Inventory, Scanner, CameraScan }
 
 @Composable
 fun InventurRoot(viewModel: InventoryViewModel) {
@@ -31,9 +31,14 @@ fun InventurRoot(viewModel: InventoryViewModel) {
         Screen.Inventory -> InventoryScreen(
             viewModel = viewModel,
             onOpenScanner = { screen = Screen.Scanner },
+            onOpenCameraScan = { screen = Screen.CameraScan },
         )
         Screen.Scanner -> ScannerScreen(
             onBack = { screen = Screen.Inventory },
+        )
+        Screen.CameraScan -> CameraScanScreen(
+            onBack = { screen = Screen.Inventory },
+            onBarcode = { viewModel.addScan(it) },
         )
     }
 }
