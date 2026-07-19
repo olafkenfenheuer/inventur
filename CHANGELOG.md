@@ -4,6 +4,19 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [1.9 (10)] – 2026-07-19
+
+### Behoben
+- Randlose Darstellung (edge-to-edge): Das Theme setzt die System-Status- und
+  -Navigationsleiste transparent, statt die opaken Farben des Framework-Themes
+  `android:Theme.Material.Light.NoActionBar` zu erben. Behebt die Play-Console-
+  Warnung „Randlose Anzeige funktioniert möglicherweise nicht für alle Nutzer".
+
+### Geändert
+- Kamera-Scan nutzt kontinuierlichen Autofokus (`continuousFocusEnabled`) statt
+  ZXings periodischem Einzel-Autofokus – schnelleres, zuverlässigeres Erfassen.
+- Version auf 1.9 (versionCode 10) angehoben.
+
 ## [1.8 (9)] – 2026-07-19
 
 ### Hinzugefügt
