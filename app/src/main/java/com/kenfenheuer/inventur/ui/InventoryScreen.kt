@@ -14,12 +14,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -116,6 +121,14 @@ fun InventoryScreen(
 
     val duplicates = remember(items) { viewModel.duplicateBarcodes(items) }
 
+    // Layout-Entscheidung nach verfuegbarer Breite:
+    //  < 600 dp  Handy hochkant  -> einspaltige Liste, FABs unten mittig
+    //  600–900   Handy quer/Tablet hoch -> zwei Panele: Liste links, Seitenleiste
+    //            (Uebersicht + Buttons) rechts
+    //  >= 900 dp Tablet breit    -> mehrspaltiges Raster, FABs unten mittig
+    val widthDp = LocalConfiguration.current.screenWidthDp
+    val paneLayout = widthDp in 600 until 900
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -167,27 +180,16 @@ fun InventoryScreen(
             )
         },
         floatingActionButton = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                // Auf schmalen Bildschirmen kuerzeres Label ("Kamera"), damit beide
-                // FABs ohne Umbruch nebeneinander passen; sonst "Kamera-Scan".
-                val cameraLabel = if (LocalConfiguration.current.screenWidthDp >= 380) {
-                    "Kamera-Scan"
-                } else {
-                    "Kamera"
+            // Im Zwei-Panel-Layout sitzen die Buttons in der rechten Seitenleiste,
+            // daher hier keine schwebenden FABs.
+            if (!paneLayout) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    CameraScanFab(widthDp = widthDp, onClick = onOpenCameraScan)
+                    ManualEntryFab(onClick = { showManualDialog = true })
                 }
-                ExtendedFloatingActionButton(
-                    onClick = onOpenCameraScan,
-                    icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
-                    text = { Text(cameraLabel) },
-                )
-                ExtendedFloatingActionButton(
-                    onClick = { showManualDialog = true },
-                    icon = { Icon(Icons.Filled.Keyboard, contentDescription = null) },
-                    text = { Text("Nummer eingeben") },
-                )
             }
         },
         // Zentriert die FAB-Gruppe, damit der Randabstand links und rechts gleich ist.
@@ -198,36 +200,94 @@ fun InventoryScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                SummaryBar(
-                    scans = items.size,
-                    duplicates = duplicates.size,
-                    lastScanned = lastScanned,
-                )
-
-                if (items.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        // Unten extra Platz, damit der letzte Eintrag ueber den FAB
-                        // gescrollt werden kann und dessen Buttons nicht verdeckt werden.
-                        contentPadding = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 88.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+            if (paneLayout) {
+                // Zwei Panele nebeneinander: links die Liste, rechts eine Seitenleiste
+                // mit der Uebersicht ("Scans") oben und den Aktions-Buttons darunter.
+                Row(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                     ) {
-                        items(items, key = { it.id }) { entry ->
-                            ScanRow(
-                                entry = entry,
-                                isDuplicate = entry.barcode in duplicates,
-                                onEditNote = { noteTarget = entry },
-                                onDelete = { deleteTarget = entry },
-                            )
+                        if (items.isNotEmpty()) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(items, key = { it.id }) { entry ->
+                                    ScanRow(
+                                        entry = entry,
+                                        isDuplicate = entry.barcode in duplicates,
+                                        onEditNote = { noteTarget = entry },
+                                        onDelete = { deleteTarget = entry },
+                                    )
+                                }
+                            }
+                        } else {
+                            EmptyHint(modifier = Modifier.align(Alignment.Center))
+                        }
+                    }
+                    Column(
+                        modifier = Modifier
+                            .width(280.dp)
+                            .fillMaxHeight()
+                            .padding(end = 12.dp, top = 12.dp, bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        SummaryBar(
+                            scans = items.size,
+                            duplicates = duplicates.size,
+                            lastScanned = lastScanned,
+                        )
+                        CameraScanFab(
+                            widthDp = widthDp,
+                            onClick = onOpenCameraScan,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        ManualEntryFab(
+                            onClick = { showManualDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    SummaryBar(
+                        scans = items.size,
+                        duplicates = duplicates.size,
+                        lastScanned = lastScanned,
+                        modifier = Modifier.padding(12.dp),
+                    )
+
+                    if (items.isNotEmpty()) {
+                        // Ab 900 dp mehrspaltiges Raster (Tablet), sonst eine Spalte.
+                        val columns = if (widthDp >= 900) 3 else 1
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(columns),
+                            modifier = Modifier.fillMaxSize(),
+                            // Unten extra Platz, damit der letzte Eintrag ueber den FAB
+                            // gescrollt werden kann und dessen Buttons nicht verdeckt werden.
+                            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 88.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            items(items, key = { it.id }) { entry ->
+                                ScanRow(
+                                    entry = entry,
+                                    isDuplicate = entry.barcode in duplicates,
+                                    onEditNote = { noteTarget = entry },
+                                    onDelete = { deleteTarget = entry },
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            // Leerhinweis ueber der gesamten Inhaltsflaeche vertikal zentrieren.
-            if (items.isEmpty()) {
-                EmptyHint(modifier = Modifier.align(Alignment.Center))
+                // Leerhinweis ueber der gesamten Inhaltsflaeche vertikal zentrieren.
+                if (items.isEmpty()) {
+                    EmptyHint(modifier = Modifier.align(Alignment.Center))
+                }
             }
         }
     }
@@ -295,11 +355,44 @@ fun InventoryScreen(
 }
 
 @Composable
-private fun SummaryBar(scans: Int, duplicates: Int, lastScanned: String?) {
+private fun CameraScanFab(
+    widthDp: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // Auf schmalen Bildschirmen kuerzeres Label ("Kamera"), damit beide FABs ohne
+    // Umbruch nebeneinander passen; sonst "Kamera-Scan".
+    val label = if (widthDp >= 380) "Kamera-Scan" else "Kamera"
+    ExtendedFloatingActionButton(
+        onClick = onClick,
+        icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
+        text = { Text(label) },
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun ManualEntryFab(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ExtendedFloatingActionButton(
+        onClick = onClick,
+        icon = { Icon(Icons.Filled.Keyboard, contentDescription = null) },
+        text = { Text("Nummer eingeben") },
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun SummaryBar(
+    scans: Int,
+    duplicates: Int,
+    lastScanned: String?,
+    modifier: Modifier = Modifier,
+) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
         ),
