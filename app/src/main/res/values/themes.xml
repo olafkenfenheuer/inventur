@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Inventur" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Inventur" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Randlose (edge-to-edge) Darstellung: Systemleisten transparent.
+             enableEdgeToEdge() setzt zur Laufzeit passende Kontrast-Scrims; die
+             transparenten Werte hier verhindern die Play-Warnung wegen der (unter
+             Android 15 veralteten) opaken Leistenfarben des Framework-Themes. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
 </resources>
