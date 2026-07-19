@@ -4,6 +4,30 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [1.8 (9)] – 2026-07-19
+
+### Hinzugefügt
+- CSV-Export an einen frei wählbaren Speicherort über das Storage Access
+  Framework – u.a. direkt auf einen per USB-OTG angeschlossenen USB-Stick,
+  ohne zusätzliche Speicherberechtigung. Neuer Toolbar-Button „Als CSV
+  speichern"; der bestehende Teilen-Weg bleibt erhalten.
+
+### Geändert
+- Version auf 1.8 (versionCode 9) angehoben.
+
+## [1.7 (8)] – 2026-07-19
+
+### Behoben
+- 16-KB-Speicherseiten-Kompatibilität: die native Inateck-Bibliothek
+  `libscanner_cmd.so` wurde verlustfrei auf 16-KB-Segmentgrenzen ausgerichtet
+  (`p_align` 0x4000). Auf einem 16-KB-Emulator (Android 16) verifiziert.
+
+### Geändert
+- Responsives Layout je nach Bildschirmbreite: einspaltige Liste (Handy
+  hochkant), zwei Panele mit Liste und Seitenleiste (Handy quer / Tablet
+  hochkant) und dreispaltiges Raster (Tablet quer).
+- Version auf 1.7 (versionCode 8) angehoben.
+
 ## [1.6 (7)] – 2026-07-18
 
 ### Geändert
