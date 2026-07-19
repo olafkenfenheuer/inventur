@@ -25,24 +25,44 @@ konfigurieren.
 
 ## Screenshots
 
+### Smartphone
+
 <p align="center">
-  <img src="docs/screenshots/splash.png" width="240" alt="Startbildschirm mit App-Icon und Copyright">
+  <img src="docs/screenshots/splash.png" width="220" alt="Startbildschirm mit App-Icon und Copyright">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/main.png" width="240" alt="Inventurliste mit Zeitstempeln, Duplikat-Markierung und Bemerkungen">
+  <img src="docs/screenshots/main.png" width="220" alt="Inventurliste mit Zeitstempeln, Duplikat-Markierung und Bemerkungen">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/manual.png" width="240" alt="Inventarnummer von Hand eingeben">
+  <img src="docs/screenshots/camera.png" width="220" alt="Barcode-Scan mit der Gerätekamera">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/note.png" width="240" alt="Bemerkung zu einem Scan erfassen">
+  <img src="docs/screenshots/manual.png" width="220" alt="Inventarnummer von Hand eingeben">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/scanner.png" width="240" alt="Scanner verbinden und konfigurieren">
+  <img src="docs/screenshots/note.png" width="220" alt="Bemerkung zu einem Scan erfassen">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/about.png" width="240" alt="Über die App mit Version und Copyright">
+  <img src="docs/screenshots/scanner.png" width="220" alt="Scanner verbinden und konfigurieren">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/about.png" width="220" alt="Über die App mit Version und Copyright">
 </p>
 
 <p align="center">
-  <i>Startbildschirm &nbsp;·&nbsp; Inventurliste &nbsp;·&nbsp; Nummer von Hand eingeben &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Scanner verbinden &nbsp;·&nbsp; Über die App</i>
+  <i>Startbildschirm &nbsp;·&nbsp; Inventurliste &nbsp;·&nbsp; Kamera-Scan &nbsp;·&nbsp; Nummer von Hand eingeben &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Scanner verbinden &nbsp;·&nbsp; Über die App</i>
+</p>
+
+### Tablet
+
+<p align="center">
+  <img src="docs/screenshots/tablet-main.png" width="640" alt="Dreispaltiges Raster auf dem Tablet im Querformat">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/tablet-panel.png" width="260" alt="Liste mit Seitenleiste im Hochformat">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/tablet-usb.png" width="260" alt="CSV-Export direkt auf einen angeschlossenen USB-Stick">
+</p>
+
+<p align="center">
+  <i>Dreispaltiges Raster (quer) &nbsp;·&nbsp; Liste mit Seitenleiste (hoch) &nbsp;·&nbsp; CSV-Export auf USB-Stick</i>
 </p>
 
 ## Funktionen
