@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,6 +38,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
@@ -121,6 +124,26 @@ fun InventoryScreen(
 
     val duplicates = remember(items) { viewModel.duplicateBarcodes(items) }
 
+    // Dateidialog zum Speichern der CSV an einem frei waehlbaren Ziel – u.a. an
+    // einem angeschlossenen USB-Stick (Storage Access Framework, keine
+    // Speicherberechtigung noetig).
+    val saveCsvLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv"),
+    ) { uri ->
+        if (uri != null) {
+            try {
+                CsvExporter.writeCsvTo(context, uri, items)
+                Toast.makeText(context, "CSV gespeichert", Toast.LENGTH_SHORT).show()
+            } catch (t: Throwable) {
+                Toast.makeText(
+                    context,
+                    "Speichern fehlgeschlagen: ${t.message}",
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+        }
+    }
+
     // Layout-Entscheidung nach verfuegbarer Breite:
     //  < 600 dp  Handy hochkant  -> einspaltige Liste, FABs unten mittig
     //  600–900   Handy quer/Tablet hoch -> zwei Panele: Liste links, Seitenleiste
@@ -149,6 +172,15 @@ fun InventoryScreen(
                         },
                     ) {
                         Icon(Icons.Filled.Share, contentDescription = "Als CSV teilen")
+                    }
+                    IconButton(
+                        enabled = items.isNotEmpty(),
+                        onClick = { saveCsvLauncher.launch(CsvExporter.suggestedFileName()) },
+                    ) {
+                        Icon(
+                            Icons.Filled.SaveAlt,
+                            contentDescription = "Als CSV speichern (z. B. USB-Stick)",
+                        )
                     }
                     IconButton(
                         enabled = items.isNotEmpty(),

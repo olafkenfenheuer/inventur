@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -20,11 +21,11 @@ object CsvExporter {
     private val timeFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.GERMANY)
     private val fileTimeFormat = SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.GERMANY)
 
-    /** Schreibt die CSV-Datei in den Cache und gibt sie zurueck. */
-    fun writeCsv(context: Context, items: List<ScanEntry>): File {
-        val dir = File(context.cacheDir, "exports").apply { mkdirs() }
-        val file = File(dir, "inventur_${fileTimeFormat.format(Date())}.csv")
+    /** Vorgeschlagener Dateiname mit Zeitstempel. */
+    fun suggestedFileName(): String = "inventur_${fileTimeFormat.format(Date())}.csv"
 
+    /** Baut den CSV-Inhalt (Semikolon-getrennt, UTF-8 mit BOM). */
+    private fun buildCsv(items: List<ScanEntry>): String {
         // In der Exportdatei chronologisch (aeltester Scan zuerst).
         val ordered = items.sortedBy { it.timestamp }
 
@@ -37,8 +38,26 @@ object CsvExporter {
             sb.append(escape(timeFormat.format(Date(item.timestamp)))).append(';')
             sb.append(escape(item.note)).append("\r\n")
         }
-        file.writeText(sb.toString(), Charsets.UTF_8)
+        return sb.toString()
+    }
+
+    /** Schreibt die CSV-Datei in den Cache und gibt sie zurueck (fuer den Teilen-Intent). */
+    fun writeCsv(context: Context, items: List<ScanEntry>): File {
+        val dir = File(context.cacheDir, "exports").apply { mkdirs() }
+        val file = File(dir, suggestedFileName())
+        file.writeText(buildCsv(items), Charsets.UTF_8)
         return file
+    }
+
+    /**
+     * Schreibt die CSV an ein per Storage Access Framework gewaehltes Ziel –
+     * z. B. einen angeschlossenen USB-Stick. Der [uri] stammt aus dem
+     * ACTION_CREATE_DOCUMENT-Dialog.
+     */
+    fun writeCsvTo(context: Context, uri: Uri, items: List<ScanEntry>) {
+        context.contentResolver.openOutputStream(uri)?.use { out ->
+            out.write(buildCsv(items).toByteArray(Charsets.UTF_8))
+        } ?: throw IOException("Ausgabeziel konnte nicht geoeffnet werden")
     }
 
     /** Erzeugt einen Chooser-Intent zum Teilen der CSV-Datei. */
