@@ -212,6 +212,10 @@ private fun BarcodeScannerView(
 
     val barcodeView = remember {
         DecoratedBarcodeView(context).apply {
+            // Kontinuierlichen Autofokus aktivieren: die Kamera stellt laufend
+            // automatisch scharf (statt ZXings periodischem Einzel-Autofokus) –
+            // Barcodes werden dadurch schneller und zuverlaessiger erfasst.
+            barcodeView.cameraSettings.isContinuousFocusEnabled = true
             setStatusText("")
             decodeContinuous(object : BarcodeCallback {
                 override fun barcodeResult(result: BarcodeResult) {
