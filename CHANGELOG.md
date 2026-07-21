@@ -4,6 +4,14 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.0 (11)] – 2026-07-21
+
+### Geändert
+- Kamera-Scan: Derselbe Barcode wird nun 5 Sekunden lang nicht erneut übernommen
+  (Entprellung von 2 s auf 5 s erhöht), um versehentliche Doppelerfassungen eines
+  im Bild verbleibenden Codes zu vermeiden.
+- Version auf 2.0 (versionCode 11) angehoben.
+
 ## [1.9 (10)] – 2026-07-19
 
 ### Behoben
