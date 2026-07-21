@@ -259,7 +259,7 @@ private fun BarcodeScannerView(
     )
 }
 
-private const val DEBOUNCE_MS = 2000L
+private const val DEBOUNCE_MS = 5000L
 
 private class LastScan {
     var code: String? = null
