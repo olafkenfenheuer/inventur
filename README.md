@@ -11,17 +11,27 @@
 ## Überblick
 
 **Inventur** ist eine schlanke Android-App, um bei einer Bestandsaufnahme
-Inventarnummern per Bluetooth-Scanner zu erfassen. Jede gescannte Nummer wird
-mit Datum und Uhrzeit als eigene Position gespeichert, versehentliche Doppel-Scans
-werden erkannt und rot markiert, und die fertige Liste lässt sich als CSV-Datei
-teilen (z. B. per E-Mail oder in eine Tabellenkalkulation).
+Inventarnummern per Bluetooth-Scanner, Gerätekamera oder von Hand zu erfassen.
+Jede Nummer wird mit Datum und Uhrzeit als eigene Position gespeichert,
+versehentliche Doppel-Scans werden erkannt und rot markiert, und die fertige
+Liste lässt sich als CSV-Datei teilen oder speichern (z. B. per E-Mail oder auf
+einen USB-Stick).
+
+Für Inventuren mit **mehreren Geräten oder Personen** trägt jeder Scan eine frei
+wählbare **Geräte-/Benutzerkennung** (CSV-Spalte „Erfasst von") – so bleibt beim
+Zusammenführen der Listen nachvollziehbar, woher jeder Eintrag stammt.
 
 Der Scanner koppelt sich als Bluetooth-Tastatur (**HID-Modus**) und „tippt" jede
 Inventarnummer gefolgt von Enter – die App fängt diese Eingaben ab und trägt sie
 automatisch in die Liste ein. Ein separater Scanner-Bildschirm nutzt das
 [Inateck Scanner SDK](https://github.com/Inateck-Technology-Inc/android_sdk), um
-den BCST-47 zu verbinden, seinen Status zu prüfen (Akku, Version) und ihn zu
-konfigurieren.
+den BCST-47 zu verbinden, seinen Status zu prüfen (Akku, Version) und ihn
+vollständig zu konfigurieren – inklusive der Moduswechsel-QR-Codes direkt auf dem
+Display.
+
+📖 **[Bedienungsanleitung](docs/bedienungsanleitung.md)** ([PDF](docs/bedienungsanleitung.pdf)) ·
+🎬 **[Demo-Video](docs/demo/inventur-demo-scan-und-export.mp4)** ·
+📦 **[Aktuelles Release](https://github.com/olafkenfenheuer/inventur/releases/latest)**
 
 ## Screenshots
 
@@ -40,29 +50,38 @@ konfigurieren.
   &nbsp;&nbsp;
   <img src="docs/screenshots/note.png" width="220" alt="Bemerkung zu einem Scan erfassen">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/scanner.png" width="220" alt="Scanner verbinden und konfigurieren">
-  &nbsp;&nbsp;
   <img src="docs/screenshots/about.png" width="220" alt="Über die App mit Version und Copyright">
 </p>
 
 <p align="center">
-  <i>Startbildschirm &nbsp;·&nbsp; Inventurliste &nbsp;·&nbsp; Kamera-Scan &nbsp;·&nbsp; Nummer von Hand eingeben &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Scanner verbinden &nbsp;·&nbsp; Über die App</i>
+  <i>Startbildschirm &nbsp;·&nbsp; Inventurliste &nbsp;·&nbsp; Kamera-Scan &nbsp;·&nbsp; Nummer von Hand eingeben &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Über die App</i>
 </p>
 
 ### Tablet
 
 <p align="center">
-  <img src="docs/screenshots/tablet-main.png" width="640" alt="Dreispaltiges Raster auf dem Tablet im Querformat">
+  <img src="docs/screenshots/tablet-main.png" width="640" alt="Inventurliste auf dem Tablet mit Gerätekennung in der Kopfzeile, Duplikat-Markierung und Bemerkung">
+</p>
+<p align="center">
+  <i>Inventurliste mit Gerätekennung „Tablet-1" in der Kopfzeile, roten Duplikaten und Bemerkung</i>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/tablet-panel.png" width="260" alt="Liste mit Seitenleiste im Hochformat">
+  <img src="docs/screenshots/device-dialog.png" width="420" alt="Dialog Gerät / Benutzer zum Festlegen der Kennung">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/tablet-usb.png" width="260" alt="CSV-Export direkt auf einen angeschlossenen USB-Stick">
+  <img src="docs/screenshots/scanner.png" width="420" alt="Scanner verbinden mit HID-Statusbanner und Modus-Barcodes">
+</p>
+<p align="center">
+  <i>Geräte-/Benutzerkennung festlegen &nbsp;·&nbsp; Scanner-Screen mit HID-Statusbanner</i>
 </p>
 
 <p align="center">
-  <i>Dreispaltiges Raster (quer) &nbsp;·&nbsp; Liste mit Seitenleiste (hoch) &nbsp;·&nbsp; CSV-Export auf USB-Stick</i>
+  <img src="docs/screenshots/mode-barcodes.png" width="420" alt="Moduswechsel-QR-Codes direkt auf dem Display">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/tablet-usb.png" width="420" alt="CSV-Export direkt auf einen angeschlossenen USB-Stick">
+</p>
+<p align="center">
+  <i>Moduswechsel-QR-Codes (GATT ↔ HID) vom Display abscannen &nbsp;·&nbsp; CSV-Export auf USB-Stick</i>
 </p>
 
 ## Funktionen
@@ -78,26 +97,37 @@ konfigurieren.
   Inventarnummern sind eindeutig.
 - **Duplikat-Erkennung:** versehentlich doppelt gescannte Nummern werden rot
   hervorgehoben und als „Duplikate" gezählt.
+- **Kamera-Scan:** Barcodes direkt mit der Gerätekamera einlesen – mit
+  5-Sekunden-Entprellung gegen versehentliche Doppelerfassung.
+- **Geräte-/Benutzerkennung:** frei wählbare Kennung in der Kopfzeile
+  (z. B. „Tablet-1" oder ein Name); jeder neue Scan speichert sie zum
+  Erfassungszeitpunkt. Ohne Kennung erinnert ein roter Hinweis.
 - **Bemerkungen** je Scan – per Long-Press oder Bearbeiten-Button.
 - **Löschen mit Bestätigung** (einzeln und ganze Liste).
 - **CSV-Export & Teilen** (`;`-getrennt, UTF-8 mit BOM für Excel; Spalten:
-  Nr, Inventarnummer, Zeitpunkt, Bemerkung).
+  Nr, Inventarnummer, Zeitpunkt, **Erfasst von**, Bemerkung).
 - **Persistenz:** die Liste übersteht einen Neustart (lokale JSON-Datei).
-- **SDK-Screen** zum Verbinden/Konfigurieren des Scanners (Akku, Version,
-  Umschalten auf HID + Enter, Lautstärke).
+- **Scanner-Screen** mit Live-**HID-Statusbanner** (zeigt, ob Scans ankommen,
+  inkl. Direktlink zu den Bluetooth-Einstellungen), **Modus-QR-Codes** zum
+  Umschalten GATT ↔ HID direkt vom Display sowie einem vollständigen
+  **Konfigurations-Panel** (Lautstärke, Vibration, Scan-Modus, Tastatur-Layout,
+  Barcode-Typen u. v. m. – Werte-Semantik laut offizieller SDK-Doku).
 - **Startbildschirm & „Über die App"** mit App-Version und Copyright-Hinweis
   (Menü oben rechts).
 
 ## So funktioniert das Scannen
 
-1. BCST-47 im **HID-Tastaturmodus** mit dem Gerät koppeln (bei Bedarf über den
-   Scanner-Screen der App auf „HID + Enter" umstellen).
-2. App öffnen und scannen – die Inventarnummern erscheinen automatisch mit
+1. In der Kopfzeile die **Geräte-/Benutzerkennung** festlegen (z. B. „Tablet-1").
+2. BCST-47 im **HID-Tastaturmodus** mit dem Gerät koppeln – das Statusbanner im
+   Scanner-Screen wird grün, sobald Scans ankommen (bei Bedarf über die
+   Modus-QR-Codes bzw. „HID + Enter" umstellen).
+3. App öffnen und scannen – die Inventarnummern erscheinen automatisch mit
    Zeitstempel in der Liste.
-3. Ist ein Barcode nicht lesbar, über den Button **„Nummer eingeben"** die
-   Inventarnummer von Hand erfassen.
-4. Bei Bedarf Bemerkungen ergänzen und Fehlscans löschen.
-5. Über das Teilen-Symbol die CSV exportieren.
+4. Ist ein Barcode nicht lesbar, über den Button **„Nummer eingeben"** die
+   Inventarnummer von Hand erfassen (oder den **Kamera-Scan** nutzen).
+5. Bei Bedarf Bemerkungen ergänzen und Fehlscans löschen.
+6. Über das Teilen-Symbol die CSV exportieren – oder direkt speichern,
+   z. B. auf einen USB-Stick.
 
 ## Architektur-Hinweis
 
