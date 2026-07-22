@@ -23,12 +23,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -42,7 +42,6 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.SaveAlt
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -55,6 +54,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -85,6 +85,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kenfenheuer.inventur.MainActivity
 import com.kenfenheuer.inventur.R
@@ -157,10 +158,16 @@ fun InventoryScreen(
     val widthDp = LocalConfiguration.current.screenWidthDp
     val paneLayout = widthDp in 600 until 900
 
+    // Schmale Screens (Handy hochkant): ohne App-Titel passen Kennung und alle
+    // Icons in eine Zeile; lange Kennungen werden dort begrenzt dargestellt.
+    val compactBar = widthDp < 600
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Inventur") },
+                // Bewusst ohne App-Namen – der Platz gehoert der Kennung
+                // und den Aktions-Icons.
+                title = {},
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -174,38 +181,29 @@ fun InventoryScreen(
                         text = deviceLabel.ifEmpty { "Keine Geräte-/Benutzerkennung – hier festlegen" },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         color = if (deviceLabel.isNotEmpty()) {
                             MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
                             MaterialTheme.colorScheme.error
                         },
                         modifier = Modifier
+                            .then(if (compactBar) Modifier.widthIn(max = 160.dp) else Modifier)
                             .clickable { showDeviceDialog = true }
                             .padding(horizontal = 4.dp),
                     )
                     IconButton(onClick = { showDeviceDialog = true }) {
-                        Icon(Icons.Filled.Badge, contentDescription = "Gerät / Benutzer")
-                    }
-                    IconButton(onClick = onOpenScanner) {
-                        // Handscanner-Symbol mit kleinem Zahnrad unten rechts:
-                        // "Scanner verbinden/konfigurieren".
-                        Box {
-                            Icon(
-                                painterResource(R.drawable.ic_barcode_reader),
-                                contentDescription = "Scanner verbinden",
-                            )
-                            Icon(
-                                Icons.Filled.Settings,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .align(Alignment.BottomEnd)
-                                    .background(
-                                        MaterialTheme.colorScheme.primaryContainer,
-                                        CircleShape,
-                                    ),
-                            )
-                        }
+                        Icon(
+                            Icons.Filled.Badge,
+                            contentDescription = "Gerät / Benutzer",
+                            // Fehlende Kennung auch ohne Text erkennbar machen.
+                            tint = if (deviceLabel.isEmpty()) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                LocalContentColor.current
+                            },
+                        )
                     }
                     IconButton(
                         enabled = items.isNotEmpty(),
@@ -239,6 +237,19 @@ fun InventoryScreen(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false },
                         ) {
+                            DropdownMenuItem(
+                                text = { Text("Scanner verbinden") },
+                                leadingIcon = {
+                                    Icon(
+                                        painterResource(R.drawable.ic_barcode_reader),
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    onOpenScanner()
+                                },
+                            )
                             DropdownMenuItem(
                                 text = { Text("Über die App") },
                                 leadingIcon = {
