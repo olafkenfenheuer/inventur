@@ -31,6 +31,13 @@ class ScannerManager {
         revision.value = revision.value + 1
     }
 
+    /**
+     * Stoesst eine Recomposition an. Noetig, weil das SDK seinen connectState
+     * ausserhalb von Compose aendert (z.B. wenn Android die GATT-Verbindung
+     * selbst aufbaut) – die UI pollt darueber den aktuellen Stand.
+     */
+    fun refreshState() = bump()
+
     private fun refreshDevices() {
         main.post {
             devices.clear()
@@ -132,6 +139,33 @@ class ScannerManager {
     /** Setzt die Signal-Lautstaerke des Scanners (0 = aus, 4 = mittel). */
     fun setVolume(device: BleScannerDevice, value: Int, onResult: (Result<*>) -> Unit) {
         val cmd = """[{"area":"3","value":"$value","name":"volume"}]"""
+        sendSetting(device, cmd, onResult)
+    }
+
+    /**
+     * Liest alle Einstellungen des Scanners. Jeder Eintrag ist eine Map mit
+     * "area", "name" und "value" – dieselben Schluessel, die setSettingInfo erwartet.
+     */
+    fun getSettings(
+        device: BleScannerDevice,
+        onResult: (Result<List<Map<String, String>>>) -> Unit,
+    ) {
+        try {
+            device.messager.getSettingInfo { result -> main.post { onResult(result) } }
+        } catch (t: Throwable) {
+            onResult(Result.failure(t))
+        }
+    }
+
+    /** Schreibt eine einzelne Einstellung (area/name wie von getSettings geliefert). */
+    fun setSetting(
+        device: BleScannerDevice,
+        area: String,
+        name: String,
+        value: String,
+        onResult: (Result<*>) -> Unit,
+    ) {
+        val cmd = """[{"area":"$area","value":"$value","name":"$name"}]"""
         sendSetting(device, cmd, onResult)
     }
 
