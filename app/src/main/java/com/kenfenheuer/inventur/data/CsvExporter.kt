@@ -31,11 +31,12 @@ object CsvExporter {
 
         val sb = StringBuilder()
         sb.append('﻿') // UTF-8 BOM, damit Excel Umlaute korrekt anzeigt
-        sb.append("Nr;Inventarnummer;Zeitpunkt;Bemerkung\r\n")
+        sb.append("Nr;Inventarnummer;Zeitpunkt;Erfasst von;Bemerkung\r\n")
         ordered.forEachIndexed { index, item ->
             sb.append(index + 1).append(';')
             sb.append(escape(item.barcode)).append(';')
             sb.append(escape(timeFormat.format(Date(item.timestamp)))).append(';')
+            sb.append(escape(item.device.orEmpty())).append(';')
             sb.append(escape(item.note)).append("\r\n")
         }
         return sb.toString()

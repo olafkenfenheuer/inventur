@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,10 +28,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.EditNote
@@ -114,11 +117,13 @@ fun InventoryScreen(
     val context = LocalContext.current
     val items by viewModel.items.collectAsState()
     val lastScanned by viewModel.lastScanned.collectAsState()
+    val deviceLabel by viewModel.deviceLabel.collectAsState()
 
     var showClearDialog by remember { mutableStateOf(false) }
     var showManualDialog by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showDeviceDialog by remember { mutableStateOf(false) }
     var noteTarget by remember { mutableStateOf<ScanEntry?>(null) }
     var deleteTarget by remember { mutableStateOf<ScanEntry?>(null) }
 
@@ -161,8 +166,46 @@ fun InventoryScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ),
                 actions = {
+                    // Aktuelle Geraete-/Benutzerkennung direkt in der Kopfzeile,
+                    // antippbar zum Aendern (wie das Badge-Icon daneben). Ohne
+                    // Kennung steht hier ein roter Hinweis, damit sie bei
+                    // Mehrgeraete-Inventuren nicht vergessen wird.
+                    Text(
+                        text = deviceLabel.ifEmpty { "Keine Geräte-/Benutzerkennung – hier festlegen" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (deviceLabel.isNotEmpty()) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        },
+                        modifier = Modifier
+                            .clickable { showDeviceDialog = true }
+                            .padding(horizontal = 4.dp),
+                    )
+                    IconButton(onClick = { showDeviceDialog = true }) {
+                        Icon(Icons.Filled.Badge, contentDescription = "Gerät / Benutzer")
+                    }
                     IconButton(onClick = onOpenScanner) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Scanner verbinden")
+                        // Handscanner-Symbol mit kleinem Zahnrad unten rechts:
+                        // "Scanner verbinden/konfigurieren".
+                        Box {
+                            Icon(
+                                painterResource(R.drawable.ic_barcode_reader),
+                                contentDescription = "Scanner verbinden",
+                            )
+                            Icon(
+                                Icons.Filled.Settings,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .align(Alignment.BottomEnd)
+                                    .background(
+                                        MaterialTheme.colorScheme.primaryContainer,
+                                        CircleShape,
+                                    ),
+                            )
+                        }
                     }
                     IconButton(
                         enabled = items.isNotEmpty(),
@@ -346,6 +389,22 @@ fun InventoryScreen(
         AboutDialog(onDismiss = { showAboutDialog = false })
     }
 
+    if (showDeviceDialog) {
+        DeviceLabelDialog(
+            current = deviceLabel,
+            onDismiss = { showDeviceDialog = false },
+            onSave = { label ->
+                viewModel.setDeviceLabel(label)
+                showDeviceDialog = false
+                Toast.makeText(
+                    context,
+                    if (label.isBlank()) "Kennung entfernt" else "Kennung gespeichert",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            },
+        )
+    }
+
     if (showManualDialog) {
         ManualEntryDialog(
             onDismiss = { showManualDialog = false },
@@ -450,6 +509,55 @@ private fun SummaryBar(
             )
         }
     }
+}
+
+@Composable
+private fun DeviceLabelDialog(
+    current: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    var text by remember { mutableStateOf(current) }
+
+    // HID-Scan-Erfassung waehrend der Texteingabe pausieren (wie bei den anderen
+    // Eingabedialogen), damit Tastendruecke nicht als Scan interpretiert werden.
+    DisposableEffect(Unit) {
+        val activity = context.findMainActivity()
+        activity?.scanCaptureEnabled = false
+        onDispose { activity?.scanCaptureEnabled = true }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Gerät / Benutzer") },
+        text = {
+            Column {
+                Text(
+                    text = "Diese Kennung wird jedem neuen Scan zugeordnet und im " +
+                        "CSV-Export als Spalte „Erfasst von“ ausgegeben. So bleibt bei " +
+                        "Inventuren mit mehreren Geräten/Personen nachvollziehbar, " +
+                        "woher jeder Eintrag stammt.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.size(8.dp))
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("z. B. Tablet-1 oder Max Mustermann") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(text) }) { Text("Speichern") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Abbrechen") }
+        },
+    )
 }
 
 @Composable
