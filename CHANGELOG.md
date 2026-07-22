@@ -4,6 +4,23 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.1.1 (13)] – 2026-07-22
+
+### Geändert
+- Kopfzeile überarbeitet: Der App-Name entfällt, der Platz gehört der
+  Geräte-/Benutzerkennung und den Aktions-Icons. „Scanner verbinden" ist ins
+  ⋮-Menü umgezogen; lange Kennungen werden auf Handys begrenzt dargestellt.
+- Version auf 2.1.1 (versionCode 13) angehoben.
+
+### Behoben
+- Hochformat: Der Hinweis „Keine Geräte-/Benutzerkennung" verdrängte Titel und
+  Export-Symbole aus der Kopfzeile.
+
+### Dokumentation
+- Bedienungsanleitung durchgängig mit Telefon-Screenshots (Hochformat);
+  private Inhalte in Export-Dialogen verpixelt.
+- Zweites Demo-Video vom Telefon (Hochformat) unter `docs/demo/`.
+
 ## [2.1 (12)] – 2026-07-22
 
 ### Hinzugefügt

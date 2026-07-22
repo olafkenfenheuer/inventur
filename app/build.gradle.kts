@@ -21,8 +21,8 @@ android {
         applicationId = "com.kenfenheuer.inventur"
         minSdk = 24
         targetSdk = 36
-        versionCode = 12
-        versionName = "2.1"
+        versionCode = 13
+        versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
