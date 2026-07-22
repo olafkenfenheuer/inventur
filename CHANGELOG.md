@@ -4,6 +4,38 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.1 (12)] – 2026-07-22
+
+### Hinzugefügt
+- Geräte-/Benutzerkennung: In der Kopfzeile wird eine frei wählbare Kennung
+  (z. B. „Tablet-1" oder ein Name) gesetzt und angezeigt; jeder neue Scan
+  speichert sie zum Erfassungszeitpunkt. Im CSV-Export erscheint sie als neue
+  Spalte „Erfasst von" – bei Inventuren mit mehreren Geräten/Personen bleibt
+  jede Zeile zuordenbar. Ohne Kennung erinnert ein roter Hinweis in der Kopfzeile.
+- Scanner-Screen: Live-Statusbanner zeigt, ob der Scanner als HID-Tastatur
+  gekoppelt ist (grün/rot), mit Direktlink zu den Bluetooth-Einstellungen.
+- Modus-Barcodes: Die offiziellen Umschalt-Codes des BCST-47 (GATT-/HID-Modus)
+  werden als QR-Codes direkt auf dem Display angezeigt – kein Papierhandbuch
+  mehr nötig; auf Tablets 2-spaltig.
+- Scanner-Konfiguration: Alle Einstellungen des BCST-47 werden per SDK gelesen
+  und mit Klartext-Auswahllisten bearbeitet (Lautstärke, Vibration, Scan-Modus,
+  Tastatur-Layout, Beleuchtung, Auto-Abschaltzeit, Barcode-Typen u. v. m.).
+- Kopfzeile: Handscanner-Symbol mit Zahnrad (Material „barcode_reader") für den
+  Scanner-Screen.
+
+### Behoben
+- Absturz im Scanner-Screen, sobald die Gerätesuche einen Scanner fand:
+  activity-compose 1.13.0 zog Compose 1.9.2 in den Runtime-Klassenpfad, während
+  gegen BOM 2024.09.00 (Compose 1.7.0) kompiliert wurde – die binär inkompatible
+  FlowRow-Signatur führte zu `NoSuchMethodError`. activity-compose auf 1.10.1
+  gepinnt, BOM auch für debugImplementation deklariert.
+- Verbindungsstatus der Gerätekarte wird jetzt konsistent gelesen und regelmäßig
+  aktualisiert (das SDK ändert ihn außerhalb von Compose) – kein eingefrorener
+  „Verbinden"-Button mehr bei bestehender Verbindung.
+
+### Geändert
+- Version auf 2.1 (versionCode 12) angehoben.
+
 ## [2.0 (11)] – 2026-07-21
 
 ### Geändert
