@@ -30,7 +30,7 @@ vollständig zu konfigurieren – inklusive der Moduswechsel-QR-Codes direkt auf
 Display.
 
 📖 **[Bedienungsanleitung](docs/bedienungsanleitung.md)** ([PDF](docs/bedienungsanleitung.pdf)) ·
-🎬 **[Demo-Video](docs/demo/inventur-demo-scan-und-export.mp4)** ·
+🎬 **[Demo-Video](https://github.com/olafkenfenheuer/inventur/releases/download/v2.1/inventur-2.1-demo.mp4)** ·
 📦 **[Aktuelles Release](https://github.com/olafkenfenheuer/inventur/releases/latest)**
 
 ## Screenshots
