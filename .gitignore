@@ -14,3 +14,6 @@
 .cxx
 local.properties
 /keystore.properties
+# Doku-Artefakte nicht im oeffentlichen Repo (nur Screenshots fuer die README)
+/docs/*
+!/docs/screenshots/

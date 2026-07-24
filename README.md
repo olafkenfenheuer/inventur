@@ -29,7 +29,7 @@ den BCST-47 zu verbinden, seinen Status zu prüfen (Akku, Version) und ihn
 vollständig zu konfigurieren – inklusive der Moduswechsel-QR-Codes direkt auf dem
 Display.
 
-📖 **[Bedienungsanleitung](docs/bedienungsanleitung.md)** ([PDF](docs/bedienungsanleitung.pdf)) ·
+📖 **[Bedienungsanleitung](https://app.kenfenheuer.net/google/inventur-anleitung.html)** ·
 🎬 **[Demo-Video](https://github.com/olafkenfenheuer/inventur/releases/download/v2.1/inventur-2.1-demo.mp4)** ·
 📦 **[Aktuelles Release](https://github.com/olafkenfenheuer/inventur/releases/latest)**
 
