@@ -4,6 +4,13 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.2.1 (15)] – 2026-07-24
+
+### Geändert
+- Version auf 2.2.1 (versionCode 15) angehoben für einen Upload in den
+  internen Testkanal im Play Store. Keine funktionalen Änderungen gegenüber
+  2.2.
+
 ## [2.2 (14)] – 2026-07-24
 
 ### Hinzugefügt
