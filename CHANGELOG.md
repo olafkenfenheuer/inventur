@@ -4,6 +4,24 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.2 (14)] – 2026-07-24
+
+### Hinzugefügt
+- Kamera-Scan zeigt den Inhalt des zuletzt erfassten Barcodes groß und in
+  Monospace-Schrift an – so lässt sich direkt prüfen, was tatsächlich gescannt
+  wurde.
+
+### Behoben
+- Kamera-Scan: Ein Drehen des Geräts löste eine Activity-Neuerstellung aus,
+  wodurch kurz der Startbildschirm erschien und das Sucherbild neu aufgebaut
+  wurde. Die Orientierung ist während des Kamera-Scans jetzt auf Hochformat
+  fixiert.
+- Startbildschirm erschien nach Konfigurationswechseln (z. B. Drehung) erneut;
+  der Splash-Zustand übersteht die Activity-Neuerstellung nun (`rememberSaveable`).
+
+### Geändert
+- Version auf 2.2 (versionCode 14) angehoben.
+
 ## [2.1.1 (13)] – 2026-07-22
 
 ### Geändert

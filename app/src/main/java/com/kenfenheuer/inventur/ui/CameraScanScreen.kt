@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.widget.Toast
@@ -47,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -83,6 +85,19 @@ fun CameraScanScreen(
 
     // System-Zurück soll zur Inventurliste fuehren, nicht die App schliessen.
     BackHandler(onBack = onBack)
+
+    // Orientierung waehrend des Kamera-Scans auf Hochformat sperren. Ohne diese
+    // Sperre wuerde ein Geraetedreh die Activity neu erstellen – dabei erschiene
+    // kurz erneut der Splashscreen und das Sucherbild wuerde neu aufgebaut.
+    DisposableEffect(Unit) {
+        val activity = context.findActivity()
+        val previousOrientation = activity?.requestedOrientation
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        onDispose {
+            activity?.requestedOrientation =
+                previousOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+    }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -180,13 +195,24 @@ fun CameraScanScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White,
                     )
-                    Spacer(Modifier.size(2.dp))
+                    Spacer(Modifier.size(6.dp))
                     Text(
-                        text = lastScanned?.let { "Zuletzt: $it" } ?: "Barcode in den Rahmen halten …",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontFamily = FontFamily.Monospace,
-                        color = Color.White,
+                        text = if (lastScanned != null) "Zuletzt gescannt:" else "Barcode in den Rahmen halten …",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f),
                     )
+                    // Den Barcode-Inhalt gross und monospaced anzeigen, damit der
+                    // Nutzer direkt pruefen kann, was tatsaechlich erfasst wurde.
+                    if (lastScanned != null) {
+                        Spacer(Modifier.size(2.dp))
+                        Text(
+                            text = lastScanned!!,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
                 }
             }
         }

@@ -98,7 +98,9 @@ Display.
 - **Duplikat-Erkennung:** versehentlich doppelt gescannte Nummern werden rot
   hervorgehoben und als „Duplikate" gezählt.
 - **Kamera-Scan:** Barcodes direkt mit der Gerätekamera einlesen – mit
-  5-Sekunden-Entprellung gegen versehentliche Doppelerfassung.
+  5-Sekunden-Entprellung gegen versehentliche Doppelerfassung. Der zuletzt
+  erkannte Barcode wird groß angezeigt (zum Prüfen des Inhalts), und der
+  Bildschirm bleibt dabei im Hochformat fixiert.
 - **Geräte-/Benutzerkennung:** frei wählbare Kennung in der Kopfzeile
   (z. B. „Tablet-1" oder ein Name); jeder neue Scan speichert sie zum
   Erfassungszeitpunkt. Ohne Kennung erinnert ein roter Hinweis.
