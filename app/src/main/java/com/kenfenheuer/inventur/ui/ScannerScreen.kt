@@ -145,7 +145,7 @@ fun ScannerScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             androidx.compose.material3.TopAppBar(
-                title = { Text("Scanner verbinden") },
+                title = { Text("Scannereinstellungen") },
                 navigationIcon = {
                     IconButton(onClick = {
                         scanner.stopScan()
@@ -171,8 +171,16 @@ fun ScannerScreen(onBack: () -> Unit) {
             )
             Spacer(Modifier.size(12.dp))
 
-            HidStatusBanner()
+            val keyboardName = rememberHidKeyboardName()
+            HidStatusBanner(keyboardName)
             Spacer(Modifier.size(12.dp))
+
+            // Per HID-Tastatur gekoppelter Scanner ist per BLE-Suche unsichtbar –
+            // trotzdem als (bonded) Geraet in die Liste aufnehmen, damit er
+            // konfigurierbar bleibt, ohne erst den Modus zu wechseln.
+            LaunchedEffect(keyboardName) {
+                keyboardName?.let { scanner.ensureBondedKeyboardDevice(context, it) }
+            }
 
             // Die Modus-Barcodes brauchen kein Bluetooth – immer zugaenglich.
             if (showModeBarcodes) {
@@ -258,9 +266,8 @@ fun ScannerScreen(onBack: () -> Unit) {
  * keine Scans an – das "Verbinden" hier im Screen (BLE/GATT) reicht dafuer nicht.
  */
 @Composable
-private fun HidStatusBanner() {
+private fun HidStatusBanner(keyboardName: String?) {
     val context = LocalContext.current
-    val keyboardName = rememberHidKeyboardName()
 
     if (keyboardName != null) {
         Card(
@@ -370,6 +377,26 @@ private fun DeviceCard(
                         },
                     ) { Text("Trennen") }
                 }
+                // Auch bei einem nur per HID-Tastatur gekoppelten (noch nicht GATT-
+                // verbundenen) Scanner anzeigen – Klick verbindet bei Bedarf zuerst.
+                OutlinedButton(
+                    enabled = !busy,
+                    onClick = {
+                        if (connected) {
+                            onConfigure()
+                        } else {
+                            busy = true
+                            scanner.connect(device) { result ->
+                                busy = false
+                                if (result.isSuccess) {
+                                    onConfigure()
+                                } else {
+                                    Toast.makeText(context, "Verbindung fehlgeschlagen", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    },
+                ) { Text("Konfiguration") }
                 if (busy) CircularProgressIndicator(modifier = Modifier.size(20.dp))
             }
 
@@ -405,7 +432,6 @@ private fun DeviceCard(
                             ).show()
                         }
                     }) { Text("HID + Enter") }
-                    OutlinedButton(onClick = onConfigure) { Text("Konfiguration") }
                 }
                 if (info != null) {
                     Spacer(Modifier.size(6.dp))

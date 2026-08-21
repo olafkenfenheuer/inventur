@@ -39,9 +39,9 @@ import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -231,14 +231,14 @@ fun InventoryScreen(
                     }
                     Box {
                         IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = "Weitere Optionen")
+                            Icon(Icons.Filled.Settings, contentDescription = "Weitere Optionen")
                         }
                         DropdownMenu(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Scanner verbinden") },
+                                text = { Text("Scannereinstellungen") },
                                 leadingIcon = {
                                     Icon(
                                         painterResource(R.drawable.ic_barcode_reader),

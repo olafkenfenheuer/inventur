@@ -1,8 +1,11 @@
 package com.kenfenheuer.inventur.ui
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,11 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,89 +45,25 @@ import androidx.compose.ui.unit.dp
 import com.inateck.scanner.ble.BleScannerDevice
 import com.kenfenheuer.inventur.scanner.ScannerManager
 
-/** Eine Einstellung, wie sie der Scanner per getSettingInfo liefert. */
-private data class SettingRow(val area: String, val name: String, val value: String)
-
-/** Deutsche Labels fuer die wichtigsten Einstellungen; Rest wird aus dem Namen abgeleitet. */
-private val settingLabels = mapOf(
-    "volume" to "Lautstaerke (0=aus)",
-    "shake_reminder" to "Vibration",
-    "shake_intensity" to "Vibrationsstaerke",
-    "scan_mode" to "Scan-Modus",
-    "time_auto_off" to "Auto-Abschaltzeit",
-    "time_continuous_mode" to "Timeout Dauer-Scan",
-    "auto_close_mode" to "Auto-Abschaltung",
-    "suffix_add_enter" to "Suffix: Enter",
-    "subfix_add_tab" to "Suffix: Tab",
-    "letter_case" to "Gross-/Kleinschreibung",
-    "keyboard_type" to "Tastatur-Layout",
-    "country_board" to "Laender-Layout",
-    "data_transmission_speed" to "Uebertragungsgeschwindigkeit",
-    "bt_mode_low" to "Bluetooth-Modus (low)",
-    "bt_mode_high" to "Bluetooth-Modus (high)",
-)
-
-/** Reihenfolge der kuratierten Einstellungen im Abschnitt "Allgemein". */
-private val curatedOrder = listOf(
-    "volume", "shake_reminder", "shake_intensity", "scan_mode",
-    "time_auto_off", "time_continuous_mode", "auto_close_mode",
-    "suffix_add_enter", "subfix_add_tab", "letter_case",
-    "keyboard_type", "country_board", "data_transmission_speed",
-)
-
 /** Einstellungen, deren Aenderung den Verbindungsmodus wechselt (Scanner trennt danach). */
 private val modeSwitchingNames = setOf("bt_mode_low", "bt_mode_high")
 
-/** Tastatur-Layouts laut offizieller SDK-Doku (Werte 1-17 Windows, +32 = Mac). */
-private val keyboardLayouts: List<Pair<String, String>> = run {
-    val base = listOf(
-        1 to "US", 2 to "Italienisch", 3 to "Deutsch", 4 to "Spanisch",
-        5 to "Franzoesisch", 6 to "GB", 7 to "Japanisch", 8 to "Kanadisch",
-        9 to "Litauisch", 10 to "Serbisch", 11 to "Schwedisch", 12 to "Niederlaendisch",
-        13 to "Daenisch", 14 to "Norwegisch", 16 to "Portugiesisch", 17 to "Polnisch",
-    )
-    base.map { (v, l) -> v.toString() to "$l (Windows)" } +
-        base.map { (v, l) -> (v + 32).toString() to "$l (Mac)" }
+/** Navigationsebenen der Konfigurationsseite, nachgebildet nach der Inateck-Office-App. */
+private sealed interface ConfigScreen {
+    data object Root : ConfigScreen
+    data object ScanModus : ConfigScreen
+    data object BarcodeTyp : ConfigScreen
+    data class BarcodeDetail(val symbology: SymbologyDef) : ConfigScreen
+    data object Datenverarbeitung : ConfigScreen
+    data object Codierung : ConfigScreen
+    data object Cache : ConfigScreen
+    data object Weitere : ConfigScreen
 }
 
 /**
- * Wertebedeutungen laut offizieller SDK-Doku (docs.inateck.com, General Configuration
- * List). Einstellungen mit Eintrag hier werden als Auswahlliste angezeigt; passt der
- * aktuelle Wert nicht zur Liste, faellt die Zeile auf den Rohwert-Editor zurueck.
- */
-private val settingOptions: Map<String, List<Pair<String, String>>> = mapOf(
-    "volume" to listOf("0" to "Stumm", "2" to "Leise", "4" to "Mittel", "8" to "Laut"),
-    "scan_mode" to listOf(
-        "1" to "Dauer-Scan",
-        "2" to "Auto-Licht-aus (Standard)",
-        "3" to "Auto-Sensor",
-        "5" to "Freihand",
-    ),
-    "letter_case" to listOf(
-        "0" to "Keine Umwandlung",
-        "1" to "Kleinbuchstaben",
-        "2" to "Grossbuchstaben",
-    ),
-    "lighting_lamp_control" to listOf("0" to "Beim Lesen", "1" to "Immer an", "2" to "Immer aus"),
-    "positioning_lamp_control" to listOf("0" to "Beim Lesen", "1" to "Immer an", "2" to "Immer aus"),
-    "shake_intensity" to listOf("0" to "Aus", "1" to "Schwach", "3" to "Stark"),
-    "keyboard_type" to keyboardLayouts,
-    "country_board" to keyboardLayouts,
-)
-
-private fun labelFor(name: String): String =
-    settingLabels[name] ?: name.removeSuffix("_on").replace('_', ' ')
-
-private fun isSymbology(name: String): Boolean = name.endsWith("_on")
-
-/** 0/1-Werte als Schalter darstellen (Barcode-Typen und bekannte Bool-Einstellungen). */
-private fun isBooleanSetting(row: SettingRow): Boolean =
-    row.value == "0" || row.value == "1"
-
-/**
- * Konfigurationsansicht fuer einen verbundenen Scanner: liest alle Einstellungen
- * per SDK und schreibt Aenderungen einzeln zurueck. Aufgeteilt in "Allgemein"
- * (kuratiert), "Barcode-Typen" (…_on-Schalter) und "Weitere" (Rest, roh).
+ * Konfigurationsansicht fuer einen verbundenen Scanner: liest alle Einstellungen per SDK und
+ * schreibt Aenderungen einzeln zurueck. Menuefuehrung und Beschriftungen orientieren sich an
+ * der offiziellen Inateck-Office-App (Kategorien-Uebersicht -> Detailseiten).
  */
 @Composable
 fun ScannerConfigPanel(
@@ -136,6 +76,7 @@ fun ScannerConfigPanel(
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var reloadKey by remember { mutableStateOf(0) }
+    var screen by remember { mutableStateOf<ConfigScreen>(ConfigScreen.Root) }
 
     LaunchedEffect(device.mac, reloadKey) {
         loading = true
@@ -155,7 +96,7 @@ fun ScannerConfigPanel(
         }
     }
 
-    fun writeSetting(row: SettingRow, newValue: String) {
+    fun writeSetting(row: SettingRow, newValue: String, playAck: Boolean = true) {
         scanner.setSetting(device, row.area, row.name, newValue) { result ->
             if (result.isSuccess) {
                 rows = rows?.map { if (it.area == row.area && it.name == row.name) it.copy(value = newValue) else it }
@@ -165,6 +106,8 @@ fun ScannerConfigPanel(
                         "Modus umgestellt – Scanner trennt die Verbindung und koppelt ggf. neu",
                         Toast.LENGTH_LONG,
                     ).show()
+                } else if (playAck) {
+                    scanner.playAckBeep(device)
                 }
             } else {
                 Toast.makeText(context, "Schreiben fehlgeschlagen: ${labelFor(row.name)}", Toast.LENGTH_SHORT).show()
@@ -172,72 +115,120 @@ fun ScannerConfigPanel(
         }
     }
 
+    fun writeBulk(names: List<String>, newValue: String) {
+        names.forEach { name -> rows?.firstOrNull { it.name == name }?.let { writeSetting(it, newValue, playAck = false) } }
+        scanner.playAckBeep(device)
+    }
+
+    val title = when (val s = screen) {
+        ConfigScreen.Root -> device.name ?: device.mac ?: "Scanner"
+        ConfigScreen.ScanModus -> "Scan-Modus"
+        ConfigScreen.BarcodeTyp -> "Barcode-Typ"
+        is ConfigScreen.BarcodeDetail -> s.symbology.displayName
+        ConfigScreen.Datenverarbeitung -> "Datenverarbeitung"
+        ConfigScreen.Codierung -> "Codierungseinstellungen"
+        ConfigScreen.Cache -> "Cache-Verwaltung"
+        ConfigScreen.Weitere -> "Weitere Einstellungen"
+    }
+    val onBack = when (screen) {
+        ConfigScreen.Root -> onClose
+        is ConfigScreen.BarcodeDetail -> { { screen = ConfigScreen.BarcodeTyp } }
+        else -> { { screen = ConfigScreen.Root } }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onClose) {
+            IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurueck")
             }
-            Text(
-                text = "Konfiguration: ${device.name ?: device.mac ?: "Scanner"}",
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Text(text = title, style = MaterialTheme.typography.titleMedium)
         }
-        Text(
-            "Aenderungen werden sofort an den Scanner gesendet. Werte ohne Schalter " +
-                "sind Rohwerte des Scanners (Bedeutung siehe BCST-47-Handbuch).",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
         Spacer(Modifier.size(8.dp))
 
         when {
             loading -> Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(12.dp),
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp))
                 Text("Einstellungen werden gelesen …")
             }
-            error != null -> Column {
+            error != null -> Column(modifier = Modifier.padding(12.dp)) {
                 Text(error!!, color = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.size(8.dp))
                 OutlinedButton(onClick = { reloadKey++ }) { Text("Erneut versuchen") }
             }
-            else -> SettingsList(
-                rows = rows.orEmpty(),
-                onWrite = ::writeSetting,
-                onReload = { reloadKey++ },
-            )
+            else -> {
+                val byName = rows.orEmpty().associateBy { it.name }
+                when (val s = screen) {
+                    ConfigScreen.Root -> RootScreen(
+                        byName = byName,
+                        onWrite = ::writeSetting,
+                        onNavigate = { screen = it },
+                        onReload = { reloadKey++ },
+                    )
+                    ConfigScreen.ScanModus -> CategoryScreen(scanModusOrder, byName, ::writeSetting)
+                    ConfigScreen.BarcodeTyp -> BarcodeTypScreen(
+                        byName = byName,
+                        onWrite = ::writeSetting,
+                        onOpenDetail = { screen = ConfigScreen.BarcodeDetail(it) },
+                        onBulk = ::writeBulk,
+                    )
+                    is ConfigScreen.BarcodeDetail -> CategoryScreen(
+                        listOf(s.symbology.onSetting) + s.symbology.extraSettings,
+                        byName,
+                        ::writeSetting,
+                    )
+                    ConfigScreen.Datenverarbeitung -> CategoryScreen(datenverarbeitungOrder, byName, ::writeSetting)
+                    ConfigScreen.Codierung -> CategoryScreen(codierungOrder, byName, ::writeSetting)
+                    ConfigScreen.Cache -> CategoryScreen(cacheOrder, byName, ::writeSetting)
+                    ConfigScreen.Weitere -> {
+                        val others = rows.orEmpty().filter { it.name !in categorizedNames }.sortedBy { it.name }
+                        WeitereScreen(others, ::writeSetting)
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun SettingsList(
-    rows: List<SettingRow>,
+private fun RootScreen(
+    byName: Map<String, SettingRow>,
     onWrite: (SettingRow, String) -> Unit,
+    onNavigate: (ConfigScreen) -> Unit,
     onReload: () -> Unit,
 ) {
-    val byName = rows.associateBy { it.name }
-    val curated = curatedOrder.mapNotNull { byName[it] }
-    val symbologies = rows.filter { isSymbology(it.name) }.sortedBy { it.name }
-    val curatedNames = curated.map { it.name }.toSet()
-    val others = rows
-        .filter { it.name !in curatedNames && !isSymbology(it.name) }
-        .sortedBy { it.name }
-
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        item { SectionHeader("Allgemein") }
-        items(curated, key = { "c:" + it.name }) { SettingRowItem(it, onWrite) }
-
-        item { SectionHeader("Barcode-Typen") }
-        items(symbologies, key = { "s:" + it.name }) { SettingRowItem(it, onWrite) }
-
-        item { SectionHeader("Weitere (Experten)") }
-        items(others, key = { "o:" + it.name }) { SettingRowItem(it, onWrite) }
-
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
-            Spacer(Modifier.size(8.dp))
+            SectionCard {
+                NavRow("Scan-Modus", byName["scan_mode"]?.let { settingOptions["scan_mode"]?.firstOrNull { o -> o.first == it.value }?.second }) { onNavigate(ConfigScreen.ScanModus) }
+                RowDivider()
+                NavRow("Barcode-Typ", null) { onNavigate(ConfigScreen.BarcodeTyp) }
+                RowDivider()
+                NavRow("Datenverarbeitung", null) { onNavigate(ConfigScreen.Datenverarbeitung) }
+                RowDivider()
+                NavRow("Codierungseinstellungen", null) { onNavigate(ConfigScreen.Codierung) }
+                RowDivider()
+                NavRow("Cache-Verwaltung", null) { onNavigate(ConfigScreen.Cache) }
+            }
+        }
+        item {
+            SectionCard {
+                allgemeinOrder.forEachIndexed { index, name ->
+                    byName[name]?.let { row ->
+                        SettingRowContent(row, onWrite)
+                        if (index != allgemeinOrder.lastIndex) RowDivider()
+                    }
+                }
+            }
+        }
+        item {
+            SectionCard { NavRow("Weitere Einstellungen", null) { onNavigate(ConfigScreen.Weitere) } }
+        }
+        item {
+            Spacer(Modifier.size(4.dp))
             OutlinedButton(onClick = onReload) { Text("Neu laden") }
             Spacer(Modifier.size(16.dp))
         }
@@ -245,34 +236,147 @@ private fun SettingsList(
 }
 
 @Composable
-private fun SectionHeader(title: String) {
-    Column {
-        Spacer(Modifier.size(10.dp))
-        Text(title, style = MaterialTheme.typography.titleSmall)
-        HorizontalDivider()
+private fun CategoryScreen(
+    names: List<String>,
+    byName: Map<String, SettingRow>,
+    onWrite: (SettingRow, String) -> Unit,
+) {
+    val present = names.mapNotNull { byName[it] }
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item {
+            SectionCard {
+                present.forEachIndexed { index, row ->
+                    SettingRowContent(row, onWrite)
+                    if (index != present.lastIndex) RowDivider()
+                }
+            }
+        }
+        item { Spacer(Modifier.size(16.dp)) }
     }
 }
 
 @Composable
-private fun SettingRowItem(row: SettingRow, onWrite: (SettingRow, String) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(labelFor(row.name), style = MaterialTheme.typography.bodyMedium)
+private fun BarcodeTypScreen(
+    byName: Map<String, SettingRow>,
+    onWrite: (SettingRow, String) -> Unit,
+    onOpenDetail: (SymbologyDef) -> Unit,
+    onBulk: (List<String>, String) -> Unit,
+) {
+    val allOnNames = symbologies.map { it.onSetting }
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item {
+            SectionCard {
+                Button(
+                    onClick = { onBulk(allOnNames, "1") },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Alle aktivieren") }
+                RowDivider()
+                OutlinedButton(
+                    onClick = { onBulk(allOnNames, "0") },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Alle deaktivieren") }
+            }
+        }
+        item {
+            SectionCard {
+                symbologies.forEachIndexed { index, symbology ->
+                    val on = byName[symbology.onSetting]?.value == "1"
+                    NavRow(symbology.displayName, if (on) "Ein" else "Aus") { onOpenDetail(symbology) }
+                    if (index != symbologies.lastIndex) RowDivider()
+                }
+            }
+        }
+        item { Spacer(Modifier.size(16.dp)) }
+    }
+}
+
+@Composable
+private fun WeitereScreen(rows: List<SettingRow>, onWrite: (SettingRow, String) -> Unit) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item {
             Text(
-                row.name,
-                style = MaterialTheme.typography.labelSmall,
-                fontFamily = FontFamily.Monospace,
+                "Rohwerte des Scanners ohne kuratierte Beschriftung (Bedeutung siehe BCST-47-Handbuch).",
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        item {
+            SectionCard {
+                rows.forEachIndexed { index, row ->
+                    Column {
+                        SettingRowContent(row, onWrite, showRawName = true)
+                    }
+                    if (index != rows.lastIndex) RowDivider()
+                }
+            }
+        }
+        item { Spacer(Modifier.size(16.dp)) }
+    }
+}
+
+@Composable
+private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(modifier = Modifier.padding(4.dp), content = content)
+    }
+}
+
+@Composable
+private fun RowDivider() {
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+}
+
+/** Navigierbare Zeile: Titel links, optionaler aktueller Wert + Pfeil rechts. */
+@Composable
+private fun NavRow(title: String, value: String?, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (value != null) {
+                Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/** Stellt eine Einstellung passend zu ihrem Wertebereich dar: Auswahlliste, Schalter oder Rohwert. */
+@Composable
+private fun SettingRowContent(row: SettingRow, onWrite: (SettingRow, String) -> Unit, showRawName: Boolean = false) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(labelFor(row.name), style = MaterialTheme.typography.bodyLarge)
+            if (showRawName) {
+                Text(
+                    row.name,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         val options = settingOptions[row.name]
         when {
-            // Auswahlliste hat Vorrang (volume=0 etc. wuerde sonst als Schalter erscheinen).
-            options != null && options.any { it.first == row.value } ->
-                EnumDropdown(row, options, onWrite)
+            options != null && options.any { it.first == row.value } -> PickerValue(row, options, onWrite)
             isBooleanSetting(row) -> Switch(
                 checked = row.value == "1",
                 onCheckedChange = { checked -> onWrite(row, if (checked) "1" else "0") },
@@ -283,15 +387,24 @@ private fun SettingRowItem(row: SettingRow, onWrite: (SettingRow, String) -> Uni
 }
 
 @Composable
-private fun EnumDropdown(
-    row: SettingRow,
-    options: List<Pair<String, String>>,
-    onWrite: (SettingRow, String) -> Unit,
-) {
+private fun PickerValue(row: SettingRow, options: List<Pair<String, String>>, onWrite: (SettingRow, String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(options.first { it.first == row.value }.second)
+        Row(
+            modifier = Modifier.clickable { expanded = true },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                options.first { it.first == row.value }.second,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { (value, label) ->

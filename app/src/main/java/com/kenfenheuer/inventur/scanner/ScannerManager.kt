@@ -1,11 +1,18 @@
 package com.kenfenheuer.inventur.scanner
 
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.clj.fastble.BleManager
+import com.clj.fastble.callback.BleReadCallback
+import com.clj.fastble.data.BleDevice
+import com.clj.fastble.exception.BleException
 import com.inateck.scanner.ble.BleListManager
+import com.inateck.scanner.ble.BleMessager
 import com.inateck.scanner.ble.BleScannerConnectState
 import com.inateck.scanner.ble.BleScannerDevice
 import com.inateck.scanner.ble.callback.BleScanResultCallBack
@@ -43,6 +50,38 @@ class ScannerManager {
             devices.clear()
             devices.addAll(BleListManager.scannerDevices)
             bump()
+        }
+    }
+
+    /**
+     * Nimmt einen per HID-Tastatur gekoppelten Scanner (Name aus dem InputManager,
+     * z.B. "Nano …") in die Geraeteliste auf, sofern er ueber die normale Bluetooth-
+     * Kopplung (bonded) bekannt ist. Im HID-Tastaturmodus taucht der Scanner sonst
+     * in keiner BLE-Suche auf – so bleibt er trotzdem ueber GATT ansprechbar und
+     * damit konfigurierbar, ohne dass man ihn erst per Modus-Barcode umschalten muss.
+     */
+    fun ensureBondedKeyboardDevice(context: Context, keyboardName: String) {
+        if (devices.any { it.name == keyboardName }) return
+        try {
+            val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+                ?: return
+            val bonded = adapter.bondedDevices ?: return
+            // Der InputManager-Name traegt oft einen Zusatz wie " Keyboard"
+            // (z.B. "Nano 160D-0DEE-HID Keyboard"), der Bluetooth-Bond-Name aber
+            // nicht ("Nano 160D-0DEE-HID") – daher Praefix- statt Exaktvergleich.
+            val match = bonded.firstOrNull { bt ->
+                val btName = bt.name ?: return@firstOrNull false
+                keyboardName == btName || keyboardName.startsWith(btName)
+            } ?: return
+            val scannerDevice = BleScannerDevice(BleDevice(match))
+            main.post {
+                if (devices.none { it.mac == scannerDevice.mac }) {
+                    devices.add(scannerDevice)
+                    bump()
+                }
+            }
+        } catch (t: Throwable) {
+            Log.e(TAG, "ensureBondedKeyboardDevice fehlgeschlagen", t)
         }
     }
 
@@ -169,6 +208,29 @@ class ScannerManager {
         sendSetting(device, cmd, onResult)
     }
 
+    /**
+     * Loest den hoerbaren Quittungston des Scanners aus. Per BLE-Mitschnitt (btsnoop) ermittelt:
+     * Die offizielle Inateck-App liest nach jeder Einstellungsaenderung zusaetzlich das Merkmal
+     * 0000ff03, das in dieser SDK-Version (2.0.0) nicht deklariert/genutzt wird – erst dieser
+     * Lesezugriff laesst den Scanner piepen, das reine setSettingInfo() allein tut es nicht.
+     */
+    fun playAckBeep(device: BleScannerDevice) {
+        try {
+            val bleDevice = BleManager.getInstance().allConnectedDevice.firstOrNull { it.mac == device.mac } ?: return
+            BleManager.getInstance().read(
+                bleDevice,
+                BleMessager.serviceUUID,
+                ACK_CHARACTERISTIC_UUID,
+                object : BleReadCallback() {
+                    override fun onReadSuccess(data: ByteArray) {}
+                    override fun onReadFailure(exception: BleException) {}
+                },
+            )
+        } catch (t: Throwable) {
+            Log.e(TAG, "playAckBeep fehlgeschlagen", t)
+        }
+    }
+
     private fun sendSetting(device: BleScannerDevice, cmd: String, onResult: (Result<*>) -> Unit) {
         try {
             device.messager.setSettingInfo(cmd) { result -> main.post { onResult(result) } }
@@ -179,5 +241,8 @@ class ScannerManager {
 
     companion object {
         private const val TAG = "ScannerManager"
+
+        /** Nicht im SDK deklariertes Merkmal, dessen Lesezugriff den Quittungston ausloest. */
+        private const val ACK_CHARACTERISTIC_UUID = "0000ff03-0000-1000-8000-00805f9b34fb"
     }
 }
