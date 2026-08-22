@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Inventur – Bedienungsanleitung</title>
+</head>
+<body>
+<style>
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface-2:#f4f6fa;
+  --ink:#16212e; --ink-soft:#4a5768; --ink-faint:#7d8a9c;
+  --line:#dde3ec; --line-strong:#c9d2df;
+  --navy:#123a6b; --navy-deep:#0d2c52;
+  --accent:#2f6fd6; --accent-soft:#e4edfb; --accent-ink:#1f5bbd;
+  --ok:#1f9d57; --ok-soft:#e5f4ec; --ok-ink:#177a43;
+  --warn:#cf554d; --warn-soft:#fbe8e6;
+  --sans: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono: ui-monospace,"SFMono-Regular","Cascadia Code",Menlo,Consolas,monospace;
+  --shadow: 0 1px 2px rgba(16,32,54,.05), 0 10px 30px -12px rgba(16,32,54,.22);
+  --shadow-shot: 0 4px 10px rgba(16,32,54,.12), 0 22px 44px -18px rgba(16,32,54,.42);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f151d; --surface:#171f2b; --surface-2:#1c2634;
+    --ink:#e7edf4; --ink-soft:#a7b3c4; --ink-faint:#7a8798;
+    --line:#28323f; --line-strong:#374455;
+    --navy:#2b5fa0; --navy-deep:#20476f;
+    --accent:#5b93e6; --accent-soft:#1a2b44; --accent-ink:#8fb6f0;
+    --ok:#43b978; --ok-soft:#153026; --ok-ink:#6fd39c;
+    --warn:#e0736b; --warn-soft:#33201f;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 34px -14px rgba(0,0,0,.7);
+    --shadow-shot: 0 6px 14px rgba(0,0,0,.5), 0 26px 50px -18px rgba(0,0,0,.85);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#eef1f6; --surface:#ffffff; --surface-2:#f4f6fa;
+  --ink:#16212e; --ink-soft:#4a5768; --ink-faint:#7d8a9c;
+  --line:#dde3ec; --line-strong:#c9d2df;
+  --navy:#123a6b; --navy-deep:#0d2c52;
+  --accent:#2f6fd6; --accent-soft:#e4edfb; --accent-ink:#1f5bbd;
+  --ok:#1f9d57; --ok-soft:#e5f4ec; --ok-ink:#177a43;
+  --warn:#cf554d; --warn-soft:#fbe8e6;
+  --shadow: 0 1px 2px rgba(16,32,54,.05), 0 10px 30px -12px rgba(16,32,54,.22);
+  --shadow-shot: 0 4px 10px rgba(16,32,54,.12), 0 22px 44px -18px rgba(16,32,54,.42);
+}
+:root[data-theme="dark"]{
+  --bg:#0f151d; --surface:#171f2b; --surface-2:#1c2634;
+  --ink:#e7edf4; --ink-soft:#a7b3c4; --ink-faint:#7a8798;
+  --line:#28323f; --line-strong:#374455;
+  --navy:#2b5fa0; --navy-deep:#20476f;
+  --accent:#5b93e6; --accent-soft:#1a2b44; --accent-ink:#8fb6f0;
+  --ok:#43b978; --ok-soft:#153026; --ok-ink:#6fd39c;
+  --warn:#e0736b; --warn-soft:#33201f;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 34px -14px rgba(0,0,0,.7);
+  --shadow-shot: 0 6px 14px rgba(0,0,0,.5), 0 26px 50px -18px rgba(0,0,0,.85);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--sans);line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.wrap{max-width:1040px;margin:0 auto;padding:0 22px 96px;}
+a{color:var(--accent-ink);text-decoration:none;}
+a:hover{text-decoration:underline;}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:3px;border-radius:4px;}
+
+/* ---------- Header ---------- */
+.hero{
+  background:linear-gradient(155deg,var(--navy) 0%,var(--navy-deep) 100%);
+  color:#eaf1fb;border-radius:0 0 26px 26px;
+  padding:40px 22px 46px;margin:0 0 0;
+}
+.hero-inner{max-width:996px;margin:0 auto;display:flex;gap:22px;align-items:center;flex-wrap:wrap;}
+.hero img.appicon{width:76px;height:76px;border-radius:18px;box-shadow:0 8px 22px -6px rgba(0,0,0,.55);}
+.hero .eyebrow{color:#a9c6ef;}
+.hero h1{font-size:clamp(2.1rem,6vw,3rem);line-height:1.02;margin:.18em 0 .1em;
+  font-weight:800;letter-spacing:-.02em;text-wrap:balance;}
+.hero p{margin:0;color:#c9dbf3;max-width:52ch;}
+.hero-qr{margin:0 0 0 auto;flex:none;background:#fff;border-radius:16px;
+  padding:13px 13px 9px;box-shadow:0 10px 26px -8px rgba(0,0,0,.55);text-align:center;}
+.hero-qr img{display:block;width:130px;height:130px;border-radius:6px;}
+.hero-qr figcaption{margin-top:8px;font-size:.7rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:#123a6b;}
+.hero-qr figcaption.gplay{display:flex;align-items:center;justify-content:center;gap:6px;}
+.hero-qr .g-logo{width:15px;height:15px;flex:none;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+@media (max-width:560px){.hero-qr{margin:6px auto 0;}}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;}
+
+/* ---------- Inhalt ---------- */
+.toc{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow);padding:20px 24px;margin:-26px auto 46px;position:relative;
+  max-width:660px;}
+.toc h2{margin:0 0 12px;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+.toc ol{margin:0;padding:0;list-style:none;counter-reset:t;
+  display:grid;grid-template-columns:1fr 1fr;gap:6px 26px;}
+.toc li{counter-increment:t;}
+.toc a{display:flex;gap:10px;align-items:baseline;color:var(--ink);padding:3px 0;}
+.toc a:hover{color:var(--accent-ink);text-decoration:none;}
+.toc a::before{content:counter(t,decimal-leading-zero);font-family:var(--mono);
+  font-size:.78rem;color:var(--accent);font-weight:600;min-width:1.6em;}
+
+/* ---------- Abschnitte ---------- */
+section{margin:0 0 40px;scroll-margin-top:20px;}
+.sec-head{display:flex;align-items:center;gap:14px;margin:0 0 6px;}
+.sec-num{font-family:var(--mono);font-size:.8rem;font-weight:600;color:#fff;
+  background:var(--navy);width:1.9em;height:1.9em;border-radius:8px;
+  display:grid;place-items:center;flex:none;}
+h2.title{font-size:1.5rem;font-weight:750;letter-spacing:-.01em;margin:0;text-wrap:balance;}
+.lead{color:var(--ink-soft);max-width:70ch;margin:.1em 0 0;}
+p{max-width:70ch;}
+h3.sub{font-size:1.05rem;margin:30px 0 0;font-weight:700;}
+
+/* ---------- Screenshot-Paar Tablet + Handy ---------- */
+/* Bild und zugehoerige Unterschrift bleiben im Druck immer zusammen. */
+.figblock{margin:0 0 6px;}
+.pair{display:flex;gap:26px;align-items:flex-end;justify-content:center;
+  flex-wrap:wrap;margin:24px 0 4px;}
+.pair figure{margin:0;text-align:center;}
+.pair img{display:block;border-radius:10px;box-shadow:var(--shadow-shot);
+  border:1px solid var(--line-strong);}
+.pair .tab img{width:560px;max-width:100%;}
+.pair .han img{width:190px;max-width:100%;border-radius:14px;}
+.pair figcaption{margin-top:9px;font-size:.72rem;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-faint);}
+.shotnote{text-align:center;font-size:.85rem;color:var(--ink-faint);
+  margin:6px auto 0;max-width:66ch;}
+
+/* Einzelbild (Handy) */
+.single{display:flex;justify-content:center;margin:24px 0 4px;}
+.single figure{margin:0;text-align:center;}
+.single img{display:block;width:250px;max-width:100%;border-radius:14px;
+  box-shadow:var(--shadow-shot);border:1px solid var(--line-strong);}
+.single figcaption{margin-top:9px;font-size:.72rem;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-faint);}
+
+/* Zwei Handy-Bilder nebeneinander */
+.duo{display:flex;gap:34px;justify-content:center;flex-wrap:wrap;margin:24px 0 4px;}
+.duo figure{margin:0;text-align:center;}
+.duo img{display:block;width:215px;max-width:100%;border-radius:14px;
+  box-shadow:var(--shadow-shot);border:1px solid var(--line-strong);}
+.duo figcaption{margin-top:9px;font-size:.72rem;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-faint);}
+
+/* nummerierte Schrittliste */
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:18px 0 0;display:grid;gap:14px;}
+ol.steps li{counter-increment:s;position:relative;padding-left:44px;max-width:68ch;}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:-1px;
+  width:28px;height:28px;border-radius:50%;background:var(--accent-soft);
+  color:var(--accent-ink);font-weight:700;font-size:.9rem;font-family:var(--mono);
+  display:grid;place-items:center;}
+ol.steps strong{font-weight:650;}
+
+.ui{font-weight:600;color:var(--accent-ink);white-space:nowrap;}
+.mono{font-family:var(--mono);font-size:.92em;}
+
+/* CSV-Beispiel + Spaltenlegende */
+.csv-sample{margin:22px 0 0;}
+.csv-sample .file{font-family:var(--mono);font-size:.78rem;color:var(--ink-faint);margin:0 0 6px;}
+.csv-sample pre{margin:0;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;box-shadow:var(--shadow);padding:14px 18px;overflow-x:auto;
+  font-family:var(--mono);font-size:.8rem;line-height:1.55;color:var(--ink);}
+.csv-sample pre .hdr{color:var(--accent-ink);font-weight:700;}
+table.cols{border-collapse:collapse;margin:14px 0 0;font-size:.85rem;width:100%;max-width:70ch;}
+table.cols th,table.cols td{text-align:left;padding:7px 14px 7px 0;border-bottom:1px solid var(--line);vertical-align:top;}
+table.cols th{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+table.cols td:first-child{font-family:var(--mono);font-weight:600;white-space:nowrap;color:var(--accent-ink);}
+.new{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:#fff;background:var(--ok);
+  padding:2px 8px;border-radius:999px;vertical-align:middle;margin-left:8px;}
+
+/* Layout-Tabelle Kapitel 8 */
+table.widths{border-collapse:collapse;margin:20px 0 0;font-size:.88rem;width:100%;max-width:74ch;}
+table.widths th,table.widths td{text-align:left;padding:9px 16px 9px 0;border-bottom:1px solid var(--line);vertical-align:top;}
+table.widths th{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+table.widths td:first-child{font-weight:650;white-space:nowrap;}
+
+/* Funktionskarten */
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:22px;}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 18px;box-shadow:var(--shadow);}
+.card h3{margin:0 0 4px;font-size:1rem;}
+.card p{margin:0;font-size:.92rem;color:var(--ink-soft);}
+.card .k{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--accent);}
+
+.note-box{background:var(--surface-2);border:1px solid var(--line);border-left:4px solid var(--accent);
+  border-radius:0 12px 12px 0;padding:14px 18px;margin:20px 0 0;font-size:.94rem;color:var(--ink-soft);max-width:70ch;}
+.note-box.warn{border-left-color:var(--warn);}
+.note-box strong{color:var(--ink);}
+
+.privacy{background:var(--ok-soft);border:1px solid color-mix(in srgb,var(--ok) 30%,transparent);
+  border-radius:20px;padding:30px 30px 26px;}
+.privacy .sec-num{background:var(--ok);}
+.privacy h2.title{color:var(--ok-ink);}
+.privacy ul{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:14px;}
+.privacy li{display:flex;gap:13px;align-items:flex-start;max-width:74ch;}
+.privacy li svg{flex:none;width:22px;height:22px;margin-top:2px;}
+.privacy li b{font-weight:650;}
+.privacy .foot{margin:22px 0 0;font-size:.92rem;}
+
+hr.rule{border:none;border-top:1px solid var(--line);margin:44px 0;}
+
+footer{color:var(--ink-faint);font-size:.86rem;text-align:center;margin-top:56px;line-height:1.7;}
+footer a{color:var(--ink-soft);}
+
+/* ---------- Druck / PDF ---------- */
+@page{size:A4;margin:11mm 13mm 12mm;}
+@media print{
+  body{background:#fff;}
+  .wrap{max-width:none;padding:0 0 6mm;}
+  .hero{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;
+    border-radius:0;margin:0;padding:13mm 10mm 11mm;}
+  .hero h1{font-size:2.4rem;}
+  .hero-qr img{width:104px;height:104px;}
+  /* Titelseite bleibt Titelseite: Hero + Inhalt, danach neue Seite. */
+  .toc{box-shadow:none;margin:-11mm auto 0;padding:14px 20px;break-after:page;}
+  .card,.privacy,.csv-sample pre{box-shadow:none;}
+  .card{padding:12px 14px;}
+  .feat{gap:10px;margin-top:14px;}
+  .pair img,.single img,.duo img{box-shadow:none;}
+
+  /* Bilder im Druck kompakter, damit Text und Abbildung auf eine Seite passen. */
+  .pair{gap:18px;margin:13px 0 3px;}
+  .pair .tab img{width:372px;}
+  .pair .han img{width:126px;}
+  .pair figcaption,.single figcaption,.duo figcaption{margin-top:6px;font-size:.65rem;}
+  .single{margin:13px 0 3px;}
+  .single img{width:156px;}
+  .duo{gap:22px;margin:13px 0 3px;}
+  .duo img{width:146px;}
+  .figblock{margin:0 0 2px;}
+  .shotnote{font-size:.78rem;margin-top:5px;}
+  h3.sub{margin-top:17px;}
+  ol.steps{gap:9px;margin-top:12px;}
+  .note-box{margin-top:12px;padding:10px 14px;font-size:.9rem;}
+
+  /* Jedes nummerierte Kapitel beginnt auf einer neuen Seite. */
+  section[id]{break-before:page;}
+  /* Einleitende Kartenreihe und Startbild bleiben bei der Titelseite. */
+  section[aria-label]{break-before:auto;}
+
+  /* Nichts Zusammengehoeriges auseinanderreissen. Bewusst nur auf der
+     aeussersten Ebene (.figblock) – verschachtelte avoid-Regeln bringen
+     Chrome dazu, Bloecke unnoetig auf die naechste Seite zu schieben. */
+  .figblock,.note-box,.csv-sample,table.cols,table.widths,.card,
+  ol.steps li,.feat,.sec-head{break-inside:avoid;}
+  p{orphans:3;widows:3;}
+  /* Ueberschriften nie allein am Seitenfuss. */
+  .sec-head,h3.sub{break-after:avoid;}
+  hr.rule{display:none;}
+  section{margin-bottom:0;}
+  footer{break-inside:avoid;margin-top:8mm;}
+  a{color:var(--ink);}
+}
+</style>
+
+<header class="hero">
+  <div class="hero-inner">
+    <img class="appicon" src="{{IMG:app-icon.png}}" alt="App-Symbol der Inventur-App">
+    <div>
+      <div class="eyebrow">Bedienungsanleitung &middot; Version 2.2.1</div>
+      <h1>Inventur</h1>
+      <p>Bestandsaufnahme per Kamera, Bluetooth&#8209;Scanner oder von Hand &ndash; jede Inventarnummer wird sofort mit Datum und Uhrzeit gespeichert. Diese Anleitung f&uuml;hrt Sie durch alle Funktionen, jeweils auf <strong>Tablet und Handy</strong> nebeneinander gezeigt.</p>
+    </div>
+    <figure class="hero-qr">
+      <img src="{{IMG:playstore-qr.png}}" alt="QR-Code zum Google-Play-Eintrag der App Inventur">
+      <figcaption class="gplay"><svg class="g-logo" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Google&nbsp;Play</figcaption>
+    </figure>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc" aria-label="Inhalt">
+    <h2>Inhalt</h2>
+    <ol>
+      <li><a href="#ueberblick">Der Hauptbildschirm</a></li>
+      <li><a href="#kennung">Ger&auml;te-/Benutzerkennung</a></li>
+      <li><a href="#kamera">Scannen mit der Kamera</a></li>
+      <li><a href="#scanner">Bluetooth&#8209;Scanner</a></li>
+      <li><a href="#manuell">Nummer von Hand eingeben</a></li>
+      <li><a href="#bearbeiten">Eintr&auml;ge &amp; Bemerkungen</a></li>
+      <li><a href="#export">Exportieren &amp; Teilen</a></li>
+      <li><a href="#groessen">Tablet, Handy &amp; Bildschirmbreite</a></li>
+      <li><a href="#datenschutz">Datenschutz</a></li>
+    </ol>
+  </nav>
+
+  <section aria-label="Kurz erklärt">
+    <div class="feat">
+      <div class="card">
+        <div class="k">Erfassen</div>
+        <h3>Drei Wege</h3>
+        <p>Kamera, Bluetooth&#8209;Scanner (HID) oder manuelle Eingabe &ndash; frei kombinierbar.</p>
+      </div>
+      <div class="card">
+        <div class="k">Sicher</div>
+        <h3>Duplikat&#8209;Erkennung</h3>
+        <p>Doppelt erfasste Nummern werden rot markiert und separat gez&auml;hlt.</p>
+      </div>
+      <div class="card">
+        <div class="k">Weitergeben</div>
+        <h3>CSV&#8209;Export</h3>
+        <p>Fertige Liste teilen oder direkt speichern &ndash; auch auf einen USB&#8209;Stick.</p>
+      </div>
+      <div class="card">
+        <div class="k">Zuordenbar</div>
+        <h3>Ger&auml;te&#8209;Kennung</h3>
+        <p>Jeder Scan tr&auml;gt die Ger&auml;te-/Benutzerkennung &ndash; ideal bei Inventuren mit mehreren Ger&auml;ten.</p>
+      </div>
+    </div>
+
+    <div class="figblock">
+      <div class="pair" style="margin-top:34px">
+        <figure class="tab"><img src="{{IMG:tablet-00-splash.jpg}}" alt="Startbildschirm der App auf dem Tablet"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-00-splash.jpg}}" alt="Startbildschirm der App auf dem Handy"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Nach dem Antippen des App&#8209;Symbols begr&uuml;&szlig;t Sie kurz der Startbildschirm, danach steht die Inventurliste bereit.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- 1 Hauptbildschirm -->
+  <section id="ueberblick">
+    <div class="sec-head"><span class="sec-num">1</span><h2 class="title">Der Hauptbildschirm</h2></div>
+    <p class="lead">Hier sehen Sie alle erfassten Positionen &ndash; die neueste zuerst. Auf dem Tablet verteilt die App die Eintr&auml;ge auf mehrere Spalten, auf dem Handy stehen sie untereinander.</p>
+
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-01-liste.jpg}}" alt="Inventurliste auf dem Tablet im dreispaltigen Raster mit Kennung Tablet-1"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-01-liste.jpg}}" alt="Inventurliste auf dem Handy einspaltig mit Kennung Handy-2"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Dieselbe Inventur auf beiden Ger&auml;ten &ndash; oben die Kennung, rot markiert die doppelt erfasste Nummer.</p>
+    </div>
+
+    <p>Ganz oben fasst eine <strong>Statuskarte</strong> die Sitzung zusammen: <strong>Scans</strong> zeigt die Gesamtzahl der Eintr&auml;ge, <strong>Duplikate</strong> die Zahl mehrfach erfasster Nummern. Darunter steht die zuletzt gescannte Nummer bzw. &bdquo;Bereit zum Scannen &hellip;&ldquo;, solange in dieser Sitzung noch nichts erfasst wurde.</p>
+
+    <p>Jede Zeile ist eine Position mit <strong>Inventarnummer</strong> und <strong>Zeitstempel</strong>. Rechts an jeder Zeile:</p>
+    <ol class="steps">
+      <li><strong>Bemerkung</strong> <span class="ui">&#9998;</span> &ndash; Notiz zu diesem Scan hinzuf&uuml;gen oder &auml;ndern.</li>
+      <li><strong>L&ouml;schen</strong> <span class="ui">&#128465;</span> &ndash; entfernt die Position (mit Sicherheitsabfrage).</li>
+    </ol>
+
+    <p>Die beiden Haupttasten <span class="ui">Kamera&#8209;Scan</span> und <span class="ui">Nummer eingeben</span> liegen auf dem Handy unten, auf dem Tablet je nach Ausrichtung unten oder in der rechten Seitenleiste. In der oberen Leiste stehen von links nach rechts die <strong>Ger&auml;te-/Benutzerkennung</strong> mit dem <span class="ui">Ausweis</span>&#8209;Symbol, <span class="ui">Teilen</span>, <span class="ui">Als CSV speichern</span>, <span class="ui">Liste leeren</span> und das <span class="ui">&#8942;&#8209;Men&uuml;</span>.</p>
+
+    <h3 class="sub">Solange noch nichts erfasst ist</h3>
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-12-leer.jpg}}" alt="Leere Inventurliste auf dem Tablet"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-12-leer.jpg}}" alt="Leere Inventurliste auf dem Handy"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Der Leerzustand nennt gleich den n&auml;chsten Schritt &ndash; und den Tipp mit dem langen Tippen f&uuml;r Bemerkungen. <span class="ui">Teilen</span>, <span class="ui">Als CSV speichern</span> und <span class="ui">Liste leeren</span> sind dabei ausgegraut.</p>
+    </div>
+
+    <h3 class="sub">Das &#8942;&#8209;Men&uuml;</h3>
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-02-menue.jpg}}" alt="Geöffnetes Menü auf dem Tablet mit Scanner verbinden und Über die App"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-02-menue.jpg}}" alt="Geöffnetes Menü auf dem Handy"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Hinter den drei Punkten oben rechts liegen <strong>Scanner verbinden</strong> und <strong>&Uuml;ber die App</strong>.</p>
+    </div>
+
+    <p><strong>&Uuml;ber die App</strong> nennt die installierte Version und den Copyright&#8209;Hinweis &ndash; hilfreich bei R&uuml;ckfragen und wenn mehrere Ger&auml;te im Einsatz sind.</p>
+  </section>
+
+  <!-- 2 Kennung -->
+  <section id="kennung">
+    <div class="sec-head"><span class="sec-num">2</span><h2 class="title">Ger&auml;te-/Benutzerkennung</h2></div>
+    <p class="lead">Machen mehrere Personen mit mehreren Ger&auml;ten gemeinsam Inventur, muss nachvollziehbar sein, <strong>woher jeder Eintrag stammt</strong>.</p>
+
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-10-kennung.jpg}}" alt="Dialog Gerät / Benutzer auf dem Tablet mit der Kennung Tablet-1"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-10-kennung.jpg}}" alt="Dialog Gerät / Benutzer auf dem Handy mit der Kennung Handy-2"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Zwei Ger&auml;te, zwei Kennungen &ndash; im Beispiel <span class="mono">Tablet-1</span> und <span class="mono">Handy-2</span>.</p>
+    </div>
+
+    <ol class="steps">
+      <li>In der oberen Leiste auf die <strong>Kennung</strong> bzw. das <span class="ui">Ausweis</span>&#8209;Symbol tippen. Ohne Kennung steht dort ein roter Hinweis <em>&bdquo;Keine Ger&auml;te-/Benutzerkennung &ndash; hier festlegen&ldquo;</em>.</li>
+      <li>Eine Kennung eingeben &ndash; z.&nbsp;B. <span class="mono">Tablet-1</span> oder <span class="mono">Max Mustermann</span> &ndash; und mit <strong>Speichern</strong> best&auml;tigen.</li>
+      <li>Die Kennung erscheint dauerhaft in der Kopfzeile und l&auml;sst sich dort jederzeit &auml;ndern.</li>
+    </ol>
+    <div class="note-box">Jeder <strong>neue</strong> Scan speichert die Kennung, die <strong>zum Zeitpunkt der Erfassung</strong> gesetzt war. Im CSV&#8209;Export erscheint sie als eigene Spalte <strong>&bdquo;Erfasst von&ldquo;</strong> &ndash; zusammengef&uuml;hrte Listen mehrerer Ger&auml;te bleiben so eindeutig zuordenbar. Bereits erfasste Eintr&auml;ge &auml;ndern sich nicht mehr, wenn Sie die Kennung sp&auml;ter anpassen.</div>
+  </section>
+
+  <!-- 3 Kamera -->
+  <section id="kamera">
+    <div class="sec-head"><span class="sec-num">3</span><h2 class="title">Scannen mit der Kamera</h2></div>
+    <p class="lead">Die schnellste Methode ohne Zusatzger&auml;t: Barcodes direkt mit der Ger&auml;tekamera einlesen.</p>
+
+    <div class="figblock">
+      <div class="single">
+        <figure><img src="{{IMG:phone-09-kamera.png}}" alt="Kamera-Scan mit erkanntem Barcode; unten wird die zuletzt gescannte Nummer groß angezeigt"><figcaption>Kamera&#8209;Scan</figcaption></figure>
+      </div>
+      <p class="shotnote">Der Kamera&#8209;Scan arbeitet immer im <strong>Hochformat</strong> &ndash; auf dem Tablet genauso wie auf dem Handy. Deshalb steht hier nur ein Bild.</p>
+    </div>
+
+    <ol class="steps">
+      <li>Auf <strong>Kamera&#8209;Scan</strong> tippen. Beim ersten Mal die <strong>Kamera&#8209;Berechtigung erteilen</strong>.</li>
+      <li>Den Barcode ruhig in den hellen <strong>Rahmen</strong> halten. Bei Erfolg gibt es einen <strong>Ton und eine Vibration</strong>, die Nummer wird sofort gespeichert.</li>
+      <li>Bei schlechten Lichtverh&auml;ltnissen oben rechts das <strong>Kamera&#8209;Licht</strong> zuschalten.</li>
+      <li>Unten wird der <strong>Inhalt des zuletzt erkannten Barcodes</strong> gro&szlig; angezeigt &ndash; so k&ouml;nnen Sie direkt pr&uuml;fen, was tats&auml;chlich erfasst wurde.</li>
+      <li>Die Anzeige <span class="mono">In dieser Sitzung erfasst</span> z&auml;hlt Ihre Treffer mit. Mit dem <strong>Zur&uuml;ck&#8209;Pfeil</strong> gelangen Sie zur Liste.</li>
+    </ol>
+
+    <div class="note-box">Weil die Erfassung im Hochformat fixiert ist, l&auml;uft sie beim Drehen des Ger&auml;ts <strong>ohne Unterbrechung</strong> weiter.</div>
+    <div class="note-box">
+      <strong>Duplikat&#8209;Schutz</strong><span class="new">5&nbsp;Sekunden</span><br>
+      Bleibt derselbe Barcode im Bild, wird er <strong>5&nbsp;Sekunden lang nicht erneut</strong> &uuml;bernommen. So vermeiden Sie versehentliche Doppelerfassungen. Ein <em>anderer</em> Barcode wird weiterhin sofort erkannt.
+    </div>
+  </section>
+
+  <!-- 4 Scanner -->
+  <section id="scanner">
+    <div class="sec-head"><span class="sec-num">4</span><h2 class="title">Bluetooth&#8209;Scanner (HID)</h2></div>
+    <p class="lead">Ideal f&uuml;r gro&szlig;e Z&auml;hlungen: ein Handscanner koppelt sich als Bluetooth&#8209;Tastatur und &uuml;bertr&auml;gt jede Nummer automatisch. Optimiert f&uuml;r den <strong>Inateck BCST&#8209;47</strong>.</p>
+
+    <p>Der eigentliche Scan&#8209;Empfang l&auml;uft &uuml;ber den <strong>HID&#8209;Tastaturmodus</strong> des Scanners &ndash; jede erfasste Nummer landet automatisch in der Liste, ganz ohne Tippen. Der Scanner&#8209;Bildschirm wird &uuml;ber das <span class="ui">&#8942;&#8209;Men&uuml;</span> &rarr; <strong>Scanner verbinden</strong> ge&ouml;ffnet.</p>
+
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-07-scanner.jpg}}" alt="Bildschirm Scanner verbinden auf dem Tablet mit rotem Statusbanner"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-07-scanner.jpg}}" alt="Bildschirm Scanner verbinden auf dem Handy mit rotem Statusbanner"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Solange kein Scanner gekoppelt ist, warnt das Statusbanner in <span style="color:var(--warn);font-weight:650">Rot</span>.</p>
+    </div>
+
+    <p><strong>Statusbanner.</strong> Ganz oben zeigt der Bildschirm sofort, ob der Scanner als Tastatur verbunden ist: <span style="color:var(--ok-ink);font-weight:650">gr&uuml;n</span> = Scans kommen an, <span style="color:var(--warn);font-weight:650">rot</span> = nicht gekoppelt. Im roten Fall f&uuml;hrt <span class="ui">Bluetooth&#8209;Einstellungen &ouml;ffnen</span> direkt zur Android&#8209;Kopplung. Der BCST&#8209;47 erscheint dort unter einem Namen wie <span class="mono">Nano &hellip;</span>.</p>
+
+    <div class="note-box">Auch andere Scanner, die sich als <strong>Bluetooth&#8209;Tastatur</strong> koppeln, funktionieren f&uuml;r die reine Erfassung. Das <span class="ui">Verbinden</span> auf diesem Bildschirm dient nur der Konfiguration des BCST&#8209;47, nicht dem Scan&#8209;Empfang.</div>
+
+    <h3 class="sub">Modus&#8209;Barcodes vom Display abscannen</h3>
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-08-modus-barcodes.jpg}}" alt="Modus-Barcodes auf dem Tablet zweispaltig"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-08-modus-barcodes.jpg}}" alt="Modus-Barcodes auf dem Handy einspaltig"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Auf dem Tablet liegen die Codes zweispaltig, auf dem Handy untereinander &ndash; kein Papierhandbuch n&ouml;tig.</p>
+    </div>
+
+    <p><strong>Scanner konfigurieren (nur BCST&#8209;47):</strong></p>
+    <ol class="steps">
+      <li>Im HID&#8209;Modus ist der Scanner f&uuml;r die Ger&auml;tesuche unsichtbar. &Uuml;ber <span class="ui">Modus&#8209;Barcodes</span> zeigt die App die Umschalt&#8209;Codes direkt an: die drei Codes der <strong>GATT&#8209;Sequenz</strong> nacheinander abscannen (Display dazu hell stellen).</li>
+      <li>Danach <span class="ui">Ger&auml;te suchen</span> antippen und den Scanner ausw&auml;hlen &ndash; die Ger&auml;tekarte zeigt <strong>Akkustand und Version</strong>.</li>
+      <li><span class="ui">Konfiguration</span> &ouml;ffnet alle Einstellungen mit Klartext&#8209;Auswahl: Lautst&auml;rke, Vibration, Scan&#8209;Modus, <strong>Tastatur&#8209;Layout</strong>, Auto&#8209;Abschaltzeit, aktive Barcode&#8209;Typen u.&nbsp;v.&nbsp;m.</li>
+      <li>Zum Schluss mit <span class="ui">HID + Enter</span> (oder der HID&#8209;Code&#8209;Sequenz) zur&uuml;ck in den Tastaturmodus wechseln und ggf. neu koppeln.</li>
+    </ol>
+    <div class="note-box warn">Im GATT&#8209;Modus kommen <strong>keine Scans</strong> in der App an &ndash; er dient ausschlie&szlig;lich der Konfiguration. Nach getaner Arbeit also wieder auf HID zur&uuml;ckstellen.</div>
+  </section>
+
+  <!-- 5 Manuell -->
+  <section id="manuell">
+    <div class="sec-head"><span class="sec-num">5</span><h2 class="title">Nummer von Hand eingeben</h2></div>
+    <p class="lead">Ist ein Barcode besch&auml;digt oder unlesbar, tragen Sie die Nummer einfach selbst nach.</p>
+
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-03-nummer-eingeben.jpg}}" alt="Dialog Inventarnummer eingeben auf dem Tablet"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-03-nummer-eingeben.jpg}}" alt="Dialog Inventarnummer eingeben auf dem Handy"><figcaption>Handy</figcaption></figure>
+      </div>
+    </div>
+
+    <ol class="steps">
+      <li>Auf <strong>Nummer eingeben</strong> tippen.</li>
+      <li>Die <strong>Inventarnummer</strong> ins Feld eintippen.</li>
+      <li>Mit <strong>Erfassen</strong> best&auml;tigen &ndash; die Position wird wie ein Scan gespeichert. <strong>Abbrechen</strong> verwirft die Eingabe.</li>
+    </ol>
+    <p>Von Hand erfasste Nummern erhalten denselben Zeitstempel, dieselbe Kennung und werden ebenso auf Duplikate gepr&uuml;ft wie gescannte.</p>
+    <div class="note-box">Solange der Eingabedialog offen ist, pausiert die Erfassung &uuml;ber den Bluetooth&#8209;Scanner &ndash; Ihre Tastatureingabe wird also nicht versehentlich als Scan gewertet.</div>
+  </section>
+
+  <!-- 6 Bearbeiten -->
+  <section id="bearbeiten">
+    <div class="sec-head"><span class="sec-num">6</span><h2 class="title">Eintr&auml;ge &amp; Bemerkungen</h2></div>
+    <p class="lead">Jede Position l&auml;sst sich nachtr&auml;glich kommentieren oder entfernen.</p>
+
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-11-bemerkung.jpg}}" alt="Bemerkungs-Dialog auf dem Tablet"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-11-bemerkung.jpg}}" alt="Bemerkungs-Dialog auf dem Handy"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Die Bemerkung erscheint danach kursiv unter der Inventarnummer.</p>
+    </div>
+
+    <p><strong>Bemerkung hinzuf&uuml;gen.</strong> Tippen Sie an der Zeile auf das <span class="ui">&#9998; Bemerkung</span>&#8209;Symbol &ndash; oder halten Sie die Zeile einfach gedr&uuml;ckt. Notiz eintragen, <strong>Speichern</strong>, fertig.</p>
+
+    <p><strong>Duplikate erkennen.</strong> Wird dieselbe Nummer mehrfach erfasst, hebt die App die Zeile <span style="color:var(--warn);font-weight:650">rot mit Warnsymbol</span> hervor und z&auml;hlt sie oben unter <strong>Duplikate</strong> mit. So rutscht Ihnen keine Doppelz&auml;hlung durch.</p>
+
+    <h3 class="sub">L&ouml;schen &ndash; immer mit Sicherheitsabfrage</h3>
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-04-scan-loeschen.jpg}}" alt="Sicherheitsabfrage Scan löschen auf dem Tablet"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-04-scan-loeschen.jpg}}" alt="Sicherheitsabfrage Scan löschen auf dem Handy"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">Das <span class="ui">&#128465; Papierkorb</span>&#8209;Symbol an der Zeile entfernt eine einzelne Position &ndash; die Abfrage nennt die betroffene Nummer.</p>
+    </div>
+
+    <div class="figblock">
+      <div class="pair">
+        <figure class="tab"><img src="{{IMG:tablet-05-liste-leeren.jpg}}" alt="Sicherheitsabfrage Liste leeren auf dem Tablet"><figcaption>Tablet</figcaption></figure>
+        <figure class="han"><img src="{{IMG:phone-05-liste-leeren.jpg}}" alt="Sicherheitsabfrage Liste leeren auf dem Handy"><figcaption>Handy</figcaption></figure>
+      </div>
+      <p class="shotnote">&Uuml;ber <span class="ui">Liste leeren</span> in der oberen Leiste r&auml;umen Sie die ganze Inventur ab.</p>
+    </div>
+
+    <div class="note-box">Die Liste wird <strong>automatisch gespeichert</strong> und bleibt auch nach einem Neustart der App erhalten. Exportieren Sie sie daher, bevor Sie sie leeren.</div>
+  </section>
+
+  <!-- 7 Export -->
+  <section id="export">
+    <div class="sec-head"><span class="sec-num">7</span><h2 class="title">Exportieren &amp; Teilen</h2></div>
+    <p class="lead">Am Ende der Z&auml;hlung geben Sie die fertige Liste als <strong>CSV&#8209;Datei</strong> weiter.</p>
+
+    <div class="figblock">
+      <div class="duo">
+        <figure><img src="{{IMG:phone-13-teilen.jpg}}" alt="Teilen-Dialog von Android mit der erzeugten CSV-Datei"><figcaption>Teilen</figcaption></figure>
+        <figure><img src="{{IMG:phone-14-speichern.jpg}}" alt="Android-Speichern-Dialog mit vorgeschlagenem Dateinamen"><figcaption>Als CSV speichern</figcaption></figure>
+      </div>
+      <p class="shotnote">Beide Dialoge kommen von Android selbst und sehen auf Tablet und Handy gleich aus &ndash; nur gr&ouml;&szlig;er bzw. kleiner.</p>
+    </div>
+
+    <ol class="steps">
+      <li><strong>Teilen</strong>: die CSV per E&#8209;Mail, Messenger oder Cloud versenden.</li>
+      <li><strong>Als CSV speichern</strong>: die Datei an einem frei w&auml;hlbaren Ort ablegen &ndash; auch auf einem angeschlossenen <strong>USB&#8209;Stick</strong>. Der Dateiname wird mit Datum und Uhrzeit vorgeschlagen und l&auml;sst sich &auml;ndern.</li>
+    </ol>
+    <p>Das Format ist <strong>semikolongetrennt</strong> und UTF&#8209;8&#8209;kodiert (mit BOM) &ndash; damit &ouml;ffnet Excel die Datei direkt korrekt, auch mit Umlauten.</p>
+
+    <div class="csv-sample">
+      <p><strong>Beispiel einer exportierten CSV&#8209;Datei</strong> &ndash; hier bereits aus zwei Ger&auml;ten zusammengef&uuml;hrt:</p>
+      <p class="file">inventur_2026-08-03_154916.csv</p>
+      <pre><span class="hdr">Nr;Inventarnummer;Zeitpunkt;Erfasst von;Bemerkung</span>
+1;INV0012345;03.08.2026 15:27:14;Tablet-1;
+2;INV0012346;03.08.2026 15:27:15;Tablet-1;
+3;INV0012347;03.08.2026 15:27:17;Tablet-1;Serverraum Regal B
+4;INV0012348;03.08.2026 15:27:18;Handy-2;
+5;INV0012346;03.08.2026 15:27:20;Handy-2;
+6;INV0012349;03.08.2026 15:27:21;Handy-2;</pre>
+      <table class="cols">
+        <tr><th>Spalte</th><th>Bedeutung</th></tr>
+        <tr><td>Nr</td><td>Laufende Nummer &ndash; die Eintr&auml;ge sind chronologisch sortiert (&auml;ltester Scan zuerst)</td></tr>
+        <tr><td>Inventarnummer</td><td>Die gescannte oder von Hand eingegebene Nummer</td></tr>
+        <tr><td>Zeitpunkt</td><td>Datum und Uhrzeit der Erfassung</td></tr>
+        <tr><td>Erfasst von</td><td>Die Ger&auml;te-/Benutzerkennung zum Zeitpunkt der Erfassung (Kapitel&nbsp;2) &ndash; bei mehreren Ger&auml;ten bleibt jede Zeile zuordenbar</td></tr>
+        <tr><td>Bemerkung</td><td>Ihre optionale Notiz zur Position (leer, wenn keine erfasst wurde)</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 8 Groessen -->
+  <section id="groessen">
+    <div class="sec-head"><span class="sec-num">8</span><h2 class="title">Tablet, Handy &amp; Bildschirmbreite</h2></div>
+    <p class="lead">Die App richtet sich nicht nach dem Ger&auml;tetyp, sondern nach der <strong>verf&uuml;gbaren Bildschirmbreite</strong>. Ein Handy im Querformat bekommt deshalb dasselbe Layout wie ein Tablet im Hochformat.</p>
+
+    <table class="widths">
+      <tr><th>Breite</th><th>Typisch f&uuml;r</th><th>So sieht die Inventurliste aus</th></tr>
+      <tr>
+        <td>schmal</td>
+        <td>Handy hochkant</td>
+        <td>Eine Spalte, Statuskarte oben, die beiden Tasten schweben unten in der Mitte. Lange Kennungen werden in der Kopfzeile gek&uuml;rzt.</td>
+      </tr>
+      <tr>
+        <td>mittel</td>
+        <td>Handy quer, Tablet hochkant</td>
+        <td>Zwei Bereiche nebeneinander: links die Liste, rechts eine Seitenleiste mit &Uuml;bersicht und den beiden Tasten in voller Breite.</td>
+      </tr>
+      <tr>
+        <td>breit</td>
+        <td>Tablet quer</td>
+        <td>Dreispaltiges Kartenraster &ndash; deutlich mehr Positionen auf einen Blick, Statuskarte wieder oben durchgehend.</td>
+      </tr>
+    </table>
+
+    <p>Auch die <strong>Modus&#8209;Barcodes</strong> aus Kapitel&nbsp;4 passen sich an: ab mittlerer Breite liegen sie zweispaltig, sonst untereinander.</p>
+
+    <div class="note-box">Zwei Ausnahmen: Der <strong>Kamera&#8209;Scan</strong> bleibt immer im Hochformat, damit die Erfassung beim Drehen nicht abbricht. Und alle <strong>Dialoge</strong> behalten ihre Breite bei &ndash; auf dem Tablet steht einfach mehr Rand darum herum.</div>
+
+    <p>Sind mehrere Ger&auml;te im Einsatz, lohnt zum Schluss ein Blick auf den Versionsstand: <span class="ui">&#8942;&#8209;Men&uuml;</span> &rarr; <strong>&Uuml;ber die App</strong> nennt die installierte Version (Kapitel&nbsp;1). So verwenden alle Ger&auml;te dieselbe Fassung und die CSV&#8209;Spalten passen zusammen.</p>
+  </section>
+
+  <!-- 9 Datenschutz -->
+  <section id="datenschutz" class="privacy">
+    <div class="sec-head"><span class="sec-num">9</span><h2 class="title">Datenschutz</h2></div>
+    <p class="lead" style="color:var(--ok-ink)"><strong>Diese App erhebt oder teilt keine Nutzerdaten.</strong> Alles bleibt auf Ihrem Ger&auml;t.</p>
+    <ul>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span><b>Keine Internetverbindung n&ouml;tig.</b> Die App fordert keine Internet&#8209;Berechtigung an und sendet nichts an Server oder Dritte.</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span><b>Alles bleibt lokal.</b> Inventarnummern, Bemerkungen und die Ger&auml;te-/Benutzerkennung werden ausschlie&szlig;lich auf dem Ger&auml;t gespeichert.</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span><b>Sie entscheiden &uuml;ber die Weitergabe.</b> Eine CSV verl&auml;sst das Ger&auml;t nur, wenn Sie sie selbst aktiv teilen oder speichern.</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span><b>Kamera nur in Echtzeit.</b> Das Kamerabild wird ausschlie&szlig;lich lokal und live verarbeitet &ndash; es werden <b>keine Fotos oder Videos</b> gespeichert oder &uuml;bertragen.</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span><b>Kein Standort.</b> Eine Standortberechtigung wird nur bis Android&nbsp;11 und ausschlie&szlig;lich f&uuml;r die Bluetooth&#8209;Suche ben&ouml;tigt (<span class="mono">neverForLocation</span>). Es wird kein Standort ausgelesen oder gespeichert.</span></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        <span><b>Jederzeit l&ouml;schbar.</b> Sie l&ouml;schen Eintr&auml;ge oder die ganze Liste direkt in der App &ndash; oder entfernen mit der App alle Daten.</span></li>
+    </ul>
+    <p class="foot">Vollst&auml;ndige Datenschutzerkl&auml;rung: <a href="https://app.kenfenheuer.net/google/inventur.html">app.kenfenheuer.net/google/inventur.html</a></p>
+  </section>
+
+  <footer>
+    Inventur &middot; Version&nbsp;2.2.1 &middot; Stand&nbsp;3.&nbsp;August&nbsp;2026<br>
+    &copy;&nbsp;2026 Olaf Kenfenheuer &middot; Kontakt: <span class="pmail" data-u="olaf" data-d="kenfenheuer.net"><noscript>olaf(at)kenfenheuer(dot)net</noscript></span><br>
+    <i>Diese Anleitung wurde mit Unterst&uuml;tzung von KI erstellt (Claude von Anthropic).</i>
+  </footer>
+
+</div>
+
+<script>
+document.querySelectorAll('span.pmail').forEach(function(el){
+  var u=el.getAttribute('data-u'),d=el.getAttribute('data-d'),a=document.createElement('a');
+  a.href='mailto:'+u+'@'+d;a.textContent=u+'@'+d;el.replaceWith(a);
+});
+</script>
+
+</body>
+</html>
