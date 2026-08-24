@@ -56,17 +56,21 @@ import com.inateck.scanner.ble.BleScannerConnectState
 import com.inateck.scanner.ble.BleScannerDevice
 import com.kenfenheuer.inventur.scanner.ScannerManager
 
+/** USB-HID Vendor/Product-ID des Inateck BCST-47 (per sysfs-uhid-Pfad ermittelt). */
+private const val SCANNER_VENDOR_ID = 0x3373
+private const val SCANNER_PRODUCT_ID = 0xB34C
+
 /**
- * Name der ersten externen HID-Tastatur (= Scanner im Tastaturmodus), sonst null.
- * Nur ueber diesen Weg kommen Scans in der App an – die BLE-Verbindung hier im
- * Screen dient ausschliesslich der Konfiguration.
+ * Liefert den Namen des verbundenen BCST-47 im HID-Tastaturmodus, sonst null. Nur
+ * ueber diesen Weg kommen Scans in der App an – die BLE-Verbindung hier im Screen
+ * dient ausschliesslich der Konfiguration.
  */
 private fun connectedHidKeyboardName(context: Context): String? {
     val inputManager = context.getSystemService(Context.INPUT_SERVICE) as InputManager
-    return inputManager.inputDeviceIds
+    val keyboards = inputManager.inputDeviceIds
         .asSequence()
         .mapNotNull { inputManager.getInputDevice(it) }
-        .firstOrNull { device ->
+        .filter { device ->
             val isKeyboard = device.sources and InputDevice.SOURCE_KEYBOARD == InputDevice.SOURCE_KEYBOARD &&
                 device.keyboardType == InputDevice.KEYBOARD_TYPE_ALPHABETIC
             // isExternal gibt es erst ab API 29; davor genuegt "echte, nicht-virtuelle Volltastatur",
@@ -74,7 +78,15 @@ private fun connectedHidKeyboardName(context: Context): String? {
             val isExternal = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || device.isExternal
             isKeyboard && !device.isVirtual && isExternal
         }
-        ?.name
+        .toList()
+    // Bevorzugt den BCST-47 anhand VID/PID, damit eine zufaellig gleichzeitig
+    // verbundene andere Bluetooth-Tastatur nicht faelschlich als Scanner gilt.
+    // Falls keine Uebereinstimmung dabei ist (z.B. ein anderes Scanner-Modell),
+    // auf die erste externe Tastatur zurueckfallen.
+    return (
+        keyboards.firstOrNull { it.vendorId == SCANNER_VENDOR_ID && it.productId == SCANNER_PRODUCT_ID }
+            ?: keyboards.firstOrNull()
+        )?.name
 }
 
 /** Beobachtet die Eingabegeraete und liefert den HID-Tastatur-Namen live (null = keine verbunden). */
