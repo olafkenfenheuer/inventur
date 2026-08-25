@@ -13,6 +13,9 @@ lifecycleViewmodelCompose = "2.8.7"
 gson = "2.10.1"
 fastble = "2.4.0"
 zxingEmbedded = "4.3.0"
+# 5.19.1: enthaelt den Fix fuer den 16-KB-Seitengroessen-Absturz von libjnidispatch.so
+# (JNA-Issues #1618/#1647, behoben in 5.16.0/5.17.0).
+jna = "5.19.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +38,8 @@ androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lif
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 fastble = { group = "com.github.Jasonchenlijian", name = "FastBle", version.ref = "fastble" }
 zxing-android-embedded = { group = "com.journeyapps", name = "zxing-android-embedded", version.ref = "zxingEmbedded" }
+jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
+jna-platform = { group = "net.java.dev.jna", name = "jna-platform", version.ref = "jna" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

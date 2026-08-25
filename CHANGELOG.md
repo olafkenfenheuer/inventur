@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.3.1 (17)] – 2026-08-25
+
+### Behoben
+- 16-KB-Speicherseiten-Kompatibilität: `libjnidispatch.so` (natives JNA-Modul,
+  das das Inateck-SDK zur Scanner-Konfiguration nutzt) wurde mit einer alten,
+  vor Android 15 gebauten JNA-Version (5.14.0) ausgeliefert und konnte auf
+  16-KB-Seiten-Geräten abstürzen. JNA wird jetzt als reguläre Gradle-
+  Abhängigkeit (`net.java.dev.jna:jna:5.19.1@aar`) statt als manuell
+  eingebundene Jars/`.so`-Datei eingebunden – die Version enthält den
+  offiziellen Fix (JNA-Issues #1618/#1647).
+
 ## [2.3 (16)] – 2026-08-25
 
 ### Hinzugefügt

@@ -21,12 +21,12 @@ android {
         applicationId = "com.kenfenheuer.inventur"
         minSdk = 24
         targetSdk = 36
-        versionCode = 16
-        versionName = "2.3"
+        versionCode = 17
+        versionName = "2.3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Das Inateck-SDK liefert native Bibliotheken (JNA + scanner_cmd) nur fuer arm64-v8a.
+        // Das Inateck-SDK (scanner_cmd) und JNA liefern native Bibliotheken nur fuer arm64-v8a.
         ndk {
             abiFilters += "arm64-v8a"
         }
@@ -97,6 +97,13 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(libs.fastble)
     implementation(libs.gson)
+    // JNA fuer das SDK; @aar bringt 16-KB-Page-Size-kompatible native Libs mit (s. o.).
+    // jna-platform zieht transitiv das normale jna-Jar - das dupliziert die Klassen aus
+    // dem @aar oben, deshalb hier ausgeschlossen.
+    implementation("net.java.dev.jna:jna:${libs.versions.jna.get()}@aar")
+    implementation(libs.jna.platform) {
+        exclude(group = "net.java.dev.jna", module = "jna")
+    }
 
     // Kamera-basierter Barcode-Scan (ZXing)
     implementation(libs.zxing.android.embedded)
