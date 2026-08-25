@@ -4,6 +4,27 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.3 (16)] – 2026-08-25
+
+### Hinzugefügt
+- Scanner-Konfiguration ist jetzt auch erreichbar, wenn der BCST-47 nur im
+  HID-Tastaturmodus gekoppelt ist – ein Tipp auf „Konfiguration" verbindet
+  automatisch per Bluetooth-LE im Hintergrund, ohne den Tastaturmodus zu
+  unterbrechen. Ein vorheriger Moduswechsel ist dafür nicht mehr nötig.
+- Konfigurationsseite neu gegliedert: Kategorien-Navigation (Scan-Modus,
+  Barcode-Typ, Datenverarbeitung, Codierungseinstellungen, Cache-Verwaltung)
+  statt einer langen Flachliste, mit Detailseiten je Barcode-Typ.
+- Hörbarer Bestätigungston des Scanners bei jeder geänderten Einstellung.
+
+### Geändert
+- Menüpunkt „Scanner verbinden" heißt jetzt „Scannereinstellungen"; das
+  Options-Menü zeigt dafür ein Zahnrad-Icon statt der drei Punkte.
+- Scanner-Erkennung prüft zusätzlich Vendor-/Product-ID (BCST-47), damit
+  eine zufällig gleichzeitig verbundene andere Bluetooth-Tastatur nicht
+  fälschlich als Scanner erkannt wird.
+- Bedienungsanleitung auf den neuen Scanner-Workflow aktualisiert.
+- Version auf 2.3 (versionCode 16) angehoben.
+
 ## [2.2.1 (15)] – 2026-07-24
 
 ### Geändert
