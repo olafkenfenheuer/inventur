@@ -23,11 +23,16 @@ Zusammenführen der Listen nachvollziehbar, woher jeder Eintrag stammt.
 
 Der Scanner koppelt sich als Bluetooth-Tastatur (**HID-Modus**) und „tippt" jede
 Inventarnummer gefolgt von Enter – die App fängt diese Eingaben ab und trägt sie
-automatisch in die Liste ein. Ein separater Scanner-Bildschirm nutzt das
-[Inateck Scanner SDK](https://github.com/Inateck-Technology-Inc/android_sdk), um
-den BCST-47 zu verbinden, seinen Status zu prüfen (Akku, Version) und ihn
+automatisch in die Liste ein. Ein separater Bildschirm „Scannereinstellungen"
+nutzt das [Inateck Scanner SDK](https://github.com/Inateck-Technology-Inc/android_sdk),
+um den BCST-47 zu verbinden, seinen Status zu prüfen (Akku, Version) und ihn
 vollständig zu konfigurieren – inklusive der Moduswechsel-QR-Codes direkt auf dem
-Display.
+Display. Die Konfiguration ist dabei auch erreichbar, während der Scanner nur im
+HID-Tastaturmodus gekoppelt ist: die App verbindet sich für den Zugriff
+automatisch im Hintergrund per Bluetooth-LE, ohne den Tastaturmodus zu
+unterbrechen. Die Einstellungen sind nach Kategorien gegliedert (Scan-Modus,
+Barcode-Typ, Datenverarbeitung, Codierung, Cache), und der Scanner bestätigt
+jede Änderung mit einem hörbaren Ton.
 
 📖 **[Bedienungsanleitung](https://app.kenfenheuer.net/google/inventur-anleitung.html)** ·
 🎬 **[Demo-Video](https://github.com/olafkenfenheuer/inventur/releases/download/v2.1/inventur-2.1-demo.mp4)** ·
@@ -69,19 +74,26 @@ Display.
 <p align="center">
   <img src="docs/screenshots/device-dialog.png" width="420" alt="Dialog Gerät / Benutzer zum Festlegen der Kennung">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/scanner.png" width="420" alt="Scanner verbinden mit HID-Statusbanner und Modus-Barcodes">
+  <img src="docs/screenshots/scanner.png" width="420" alt="Scannereinstellungen mit HID-Statusbanner und Modus-Barcodes">
 </p>
 <p align="center">
-  <i>Geräte-/Benutzerkennung festlegen &nbsp;·&nbsp; Scanner-Screen mit HID-Statusbanner</i>
+  <i>Geräte-/Benutzerkennung festlegen &nbsp;·&nbsp; Scannereinstellungen mit HID-Statusbanner</i>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/mode-barcodes.png" width="420" alt="Moduswechsel-QR-Codes direkt auf dem Display">
+  <img src="docs/screenshots/scanner-config.png" width="420" alt="Scanner-Konfiguration nach Kategorien gegliedert: Scan-Modus, Barcode-Typ, Datenverarbeitung, Codierungseinstellungen, Cache-Verwaltung">
   &nbsp;&nbsp;
+  <img src="docs/screenshots/mode-barcodes.png" width="420" alt="Moduswechsel-QR-Codes direkt auf dem Display">
+</p>
+<p align="center">
+  <i>Konfiguration nach Kategorien &nbsp;·&nbsp; Moduswechsel-QR-Codes (GATT ↔ HID) vom Display abscannen</i>
+</p>
+
+<p align="center">
   <img src="docs/screenshots/tablet-usb.png" width="420" alt="CSV-Export direkt auf einen angeschlossenen USB-Stick">
 </p>
 <p align="center">
-  <i>Moduswechsel-QR-Codes (GATT ↔ HID) vom Display abscannen &nbsp;·&nbsp; CSV-Export auf USB-Stick</i>
+  <i>CSV-Export auf USB-Stick</i>
 </p>
 
 ## Funktionen
@@ -109,19 +121,22 @@ Display.
 - **CSV-Export & Teilen** (`;`-getrennt, UTF-8 mit BOM für Excel; Spalten:
   Nr, Inventarnummer, Zeitpunkt, **Erfasst von**, Bemerkung).
 - **Persistenz:** die Liste übersteht einen Neustart (lokale JSON-Datei).
-- **Scanner-Screen** mit Live-**HID-Statusbanner** (zeigt, ob Scans ankommen,
-  inkl. Direktlink zu den Bluetooth-Einstellungen), **Modus-QR-Codes** zum
-  Umschalten GATT ↔ HID direkt vom Display sowie einem vollständigen
-  **Konfigurations-Panel** (Lautstärke, Vibration, Scan-Modus, Tastatur-Layout,
-  Barcode-Typen u. v. m. – Werte-Semantik laut offizieller SDK-Doku).
+- **Scannereinstellungen** mit Live-**HID-Statusbanner** (zeigt, ob Scans
+  ankommen, inkl. Direktlink zu den Bluetooth-Einstellungen), **Modus-QR-Codes**
+  zum Umschalten GATT ↔ HID direkt vom Display sowie einer vollständigen
+  **Konfiguration nach Kategorien** (Scan-Modus, Barcode-Typ, Datenverarbeitung,
+  Codierungseinstellungen, Cache-Verwaltung – Werte-Semantik laut offizieller
+  SDK-Doku). Die Konfiguration ist auch im HID-Tastaturmodus erreichbar (Verbindung
+  im Hintergrund, ohne Moduswechsel) und der Scanner bestätigt jede Änderung mit
+  einem Ton.
 - **Startbildschirm & „Über die App"** mit App-Version und Copyright-Hinweis
   (Menü oben rechts).
 
 ## So funktioniert das Scannen
 
 1. In der Kopfzeile die **Geräte-/Benutzerkennung** festlegen (z. B. „Tablet-1").
-2. BCST-47 im **HID-Tastaturmodus** mit dem Gerät koppeln – das Statusbanner im
-   Scanner-Screen wird grün, sobald Scans ankommen (bei Bedarf über die
+2. BCST-47 im **HID-Tastaturmodus** mit dem Gerät koppeln – das Statusbanner in
+   den Scannereinstellungen wird grün, sobald Scans ankommen (bei Bedarf über die
    Modus-QR-Codes bzw. „HID + Enter" umstellen).
 3. App öffnen und scannen – die Inventarnummern erscheinen automatisch mit
    Zeitstempel in der Liste.
