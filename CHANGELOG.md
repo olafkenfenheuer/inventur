@@ -7,6 +7,7 @@ Versionierung nach `versionName (versionCode)`.
 ## [Unveröffentlicht]
 
 ### Behoben
+- Scanner-Karte zeigte „Unbekanntes Gerät“, wenn das Geräteobjekt neu angelegt wurde (z. B. nach „Trennen“): Das SDK liefert den Namen nur aus der Suche. Die App merkt sich den Namen je Adresse und zeigt sonst „Scanner …0DEE“.
 - **„Trennen“ stoppt zuerst den Hintergrunddienst** und trennt dann den Scanner (vorher baute der Dienst die Verbindung wieder auf).
 - Scanner-Karte: Die Knöpfe brechen auf schmalen Bildschirmen (Handy) um, statt zusammengequetscht zu werden.
 

@@ -166,7 +166,7 @@ fun ScannerConfigPanel(
     }
 
     val title = when (val s = screen) {
-        ConfigScreen.Root -> device.name ?: device.mac ?: "Scanner"
+        ConfigScreen.Root -> scanner.displayName(device)
         ConfigScreen.ScanModus -> "Scan-Modus"
         ConfigScreen.BarcodeTyp -> "Barcode-Typ"
         is ConfigScreen.BarcodeDetail -> s.symbology.displayName

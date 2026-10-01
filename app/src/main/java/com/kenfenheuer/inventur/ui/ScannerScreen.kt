@@ -536,7 +536,7 @@ private fun DeviceCard(
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = device.name ?: "Unbekanntes Geraet",
+                text = scanner.displayName(device),
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(

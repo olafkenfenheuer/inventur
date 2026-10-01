@@ -65,6 +65,19 @@ class ScannerManager {
         }
     }
 
+    /** Anzeigename: SDK-Name, sonst der gemerkte Name zur Adresse, sonst "Scanner" mit dem Ende der Adresse. */
+    fun displayName(device: BleScannerDevice): String {
+        val mac = device.mac
+        val name = device.name
+        val ctx = appContext
+        if (!name.isNullOrBlank()) {
+            if (ctx != null && mac != null) ScannerPrefs.rememberName(ctx, mac, name)
+            return name
+        }
+        if (ctx != null && mac != null) ScannerPrefs.nameFor(ctx, mac)?.let { return it }
+        return "Scanner " + (mac?.takeLast(5) ?: "")
+    }
+
     /** Entfernt ein (veraltetes) Geraet aus der Liste. */
     fun discard(device: BleScannerDevice) {
         main.post {

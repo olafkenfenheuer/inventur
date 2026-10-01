@@ -76,6 +76,10 @@ object ScannerPrefs {
     fun expertOfferDismissed(context: Context): Boolean = p(context).getBoolean("expert_offer_dismissed", false)
     fun setExpertOfferDismissed(context: Context, v: Boolean) = p(context).edit().putBoolean("expert_offer_dismissed", v).apply()
 
+    /** Merkt sich den Namen je Adresse: das SDK liefert den Namen nur aus der Suche, ein neu angelegtes Geraet hat ihn nicht. */
+    fun rememberName(context: Context, mac: String, name: String) = p(context).edit().putString("name_$mac", name).apply()
+    fun nameFor(context: Context, mac: String): String? = p(context).getString("name_$mac", null)
+
     /** MAC des zuletzt verbundenen Scanners (im Expertenmodus eine andere Adresse als die HID-Tastatur). */
     fun lastMac(context: Context): String? = p(context).getString("last_scanner_mac", null)
     fun setLastMac(context: Context, mac: String) = p(context).edit().putString("last_scanner_mac", mac).apply()
