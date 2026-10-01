@@ -5,6 +5,8 @@ import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,7 +27,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,10 +48,10 @@ import com.google.zxing.qrcode.QRCodeWriter
  * HID-Tastaturmodus und GATT-Konfigurationsmodus umschalten, ohne das
  * Papierhandbuch zu benoetigen.
  */
-private const val CMD_ENTER_SETUP = "/*EnterSet*/"
-private const val CMD_EXIT_SAVE = "/*ExitSave*/"
-private const val CMD_MODE_GATT = "/*BLE_GATT*/"
 private const val CMD_MODE_HID = "/*SwhToHID*/"
+private const val CMD_ENTER_SETUP = "/*EnterSet*/"
+private const val CMD_FACTORY_RESET = "/*SetFun00*/"
+private const val CMD_EXIT_SAVE = "/*ExitSave*/"
 
 private fun qrBitmap(content: String, size: Int = 400): Bitmap {
     val hints = mapOf(EncodeHintType.MARGIN to 2)
@@ -61,72 +66,52 @@ private fun qrBitmap(content: String, size: Int = 400): Bitmap {
     return Bitmap.createBitmap(pixels, matrix.width, matrix.height, Bitmap.Config.RGB_565)
 }
 
+/**
+ * Dialog "Scanner zuruecksetzen (Werkseinstellungen)" mit den vier Barcodes in der getesteten Reihenfolge:
+ * 1. Bluetooth-Kopplung zuruecksetzen (`/*SwhToHID*/`, Handbuch: Verbindung zuruecksetzen), 2. Einstellungen aufrufen,
+ * 3. Werkseinstellungen wiederherstellen, 4. Beenden und speichern (Handbuch Kap. 3.5). Am Geraet getestet: nur mit allen vier
+ * Scans (und anschliessendem Aus-/Einschalten) steht der Scanner danach sauber im Werkszustand.
+ */
 @Composable
-fun ModeBarcodesPanel(onClose: () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onClose) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurueck")
+fun BluetoothPairingBarcodeDialog(onOpenBluetoothSettings: () -> Unit, onDismiss: () -> Unit) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Scanner zuruecksetzen (Werkseinstellungen)") },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text(
+                    "Achtung: Setzt ALLE Einstellungen des Scanners auf Werkswerte zurueck (Verbindungsmodus, Ton, Suffix/Enter, " +
+                        "Barcode-Typen, Cache-Modus …). Vorher in der Konfiguration \"Einstellungen sichern\" und den Scanner " +
+                        "in den Android-Bluetooth-Einstellungen entfernen.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Text(
+                    "Die vier Barcodes nacheinander in dieser Reihenfolge mit dem Scanner vom Display abscannen " +
+                        "(Display moeglichst hell, nach jedem Scan piept der Scanner).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                BarcodeCard("1. Bluetooth-Verbindung zuruecksetzen", CMD_MODE_HID)
+                BarcodeCard("2. Einstellungen aufrufen", CMD_ENTER_SETUP)
+                BarcodeCard("3. Werkseinstellungen wiederherstellen", CMD_FACTORY_RESET)
+                BarcodeCard("4. Beenden und speichern", CMD_EXIT_SAVE)
+                Text(
+                    "Danach: Scanner aus- und wieder einschalten. Die App verbindet ihn (Name \"Nano …\", Tastaturmodus) und " +
+                        "bietet die Umstellung auf den Expertenmodus an; anschliessend in der Konfiguration \"Sicherung einspielen\".",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-            Text("Modus-Barcodes", style = MaterialTheme.typography.titleMedium)
-        }
-        Text(
-            "Die Barcodes nacheinander mit dem Scanner vom Display abscannen. " +
-                "Display dafuer moeglichst hell stellen.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.size(8.dp))
-
-        // Auf dem Tablet stehen die QR-Codes genau 2-spaltig nebeneinander,
-        // auf dem Telefon untereinander.
-        BoxWithConstraints {
-        val columns = if (maxWidth >= 600.dp) 2 else 1
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(columns),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Column {
-                    Text(
-                        "In den Konfigurationsmodus (GATT) wechseln",
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        "Danach findet die Geraetesuche den Scanner; Scans als Tastatur " +
-                            "kommen in diesem Modus NICHT an.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            item { BarcodeCard("1. Einstellungen aufrufen", CMD_ENTER_SETUP) }
-            item { BarcodeCard("2. Bluetooth-GATT-Modus", CMD_MODE_GATT) }
-            item { BarcodeCard("3. Speichern und Beenden", CMD_EXIT_SAVE) }
-
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Column {
-                    Spacer(Modifier.size(6.dp))
-                    Text(
-                        "Zurueck in den Tastaturmodus (HID)",
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        "Alternativ stellt der Button \"HID + Enter\" bei bestehender " +
-                            "GATT-Verbindung den Modus per App um.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            item { BarcodeCard("1. Einstellungen aufrufen", CMD_ENTER_SETUP) }
-            item { BarcodeCard("2. Bluetooth-HID-Modus", CMD_MODE_HID) }
-            item { BarcodeCard("3. Speichern und Beenden", CMD_EXIT_SAVE) }
-            item(span = { GridItemSpan(maxLineSpan) }) { Spacer(Modifier.size(16.dp)) }
-        }
-        }
-    }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onOpenBluetoothSettings) { Text("Bluetooth-Einstellungen") }
+        },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Schliessen") } },
+    )
 }
 
 @Composable

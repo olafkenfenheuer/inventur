@@ -79,8 +79,11 @@ class ScannerService : Service() {
                         sm.ensureScanHook(dev) // nach einer Wiederverbindung erneut sicherstellen
                     }
                     sm.isStuck(dev) -> {
-                        update("Verbindung hängt – neuer Versuch …")
-                        sm.connect(sm.resetDevice(dev)) { }
+                        // Haengt die Verbindung, kann der Scanner unter einer neuen Adresse senden (z. B. nach einem Moduswechsel):
+                        // altes Geraet verwerfen und neu suchen; gefunden wird er ueber den gleichen hinteren Adressteil.
+                        update("Verbindung hängt – suche den Scanner neu …")
+                        sm.discard(sm.resetDevice(dev))
+                        if (!sm.isScanning.value) sm.startScan()
                     }
                     dev.connectState == BleScannerConnectState.DISCONNECTED -> {
                         update("Verbinde mit dem Scanner …")
@@ -95,7 +98,8 @@ class ScannerService : Service() {
     }
 
     private fun update(text: String) {
-        if (text == lastText) return
+        // Immer neu senden (auch bei gleichem Text): Wurde die Benachrichtigungs-Berechtigung erst nach dem Dienststart erteilt,
+        // erscheint die Benachrichtigung samt Symbol so spaetestens beim naechsten Durchlauf.
         lastText = text
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(ID, notification(text))
     }

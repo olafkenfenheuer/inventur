@@ -49,10 +49,26 @@ class ScannerManager {
      */
     fun refreshState() = bump()
 
-    private fun refreshDevices() {
+    /** Adressen, die in der laufenden Suche gesehen wurden (das SDK behaelt aeltere Funde, z. B. die Adresse vor einem Moduswechsel). */
+    private val seenInScan = HashSet<String>()
+
+    private fun refreshDevices(onlySeen: Boolean = false) {
         main.post {
+            var list = BleListManager.scannerDevices.distinctBy { it.mac ?: it.identifier }
+            if (onlySeen && seenInScan.isNotEmpty()) {
+                // Nach der Suche nur noch gefundene Geraete (und verbundene) behalten: veraltete Adressen verschwinden.
+                list = list.filter { (it.mac ?: it.identifier) in seenInScan || isConnected(it) }
+            }
             devices.clear()
-            devices.addAll(BleListManager.scannerDevices.distinctBy { it.mac ?: it.identifier })
+            devices.addAll(list)
+            bump()
+        }
+    }
+
+    /** Entfernt ein (veraltetes) Geraet aus der Liste. */
+    fun discard(device: BleScannerDevice) {
+        main.post {
+            devices.removeAll { it.mac == device.mac }
             bump()
         }
     }
@@ -118,12 +134,16 @@ class ScannerManager {
     fun startScan() {
         try {
             isScanning.value = true
+            seenInScan.clear()
             BleListManager.scan(object : BleScanResultCallBack {
                 override fun onScanStarted(scanResultList: List<BleScannerDevice>) = refreshDevices()
-                override fun onScanning(device: BleScannerDevice) = refreshDevices()
+                override fun onScanning(device: BleScannerDevice) {
+                    (device.mac ?: device.identifier)?.let { seenInScan.add(it) }
+                    refreshDevices()
+                }
                 override fun onScanFinished(scanResultList: List<BleScannerDevice>) {
                     main.post { isScanning.value = false }
-                    refreshDevices()
+                    refreshDevices(onlySeen = true)
                 }
             })
         } catch (t: Throwable) {
@@ -248,17 +268,42 @@ class ScannerManager {
     fun setExpertMode(device: BleScannerDevice, area: String, expert: Boolean, onResult: (Result<*>) -> Unit) {
         setSetting(device, area, "bt_mode_low", if (expert) "0" else "1") { r ->
             if (r.isSuccess) {
-                // Der Scanner uebernimmt den neuen Modus erst nach einem Neustart.
+                // Der Scanner uebernimmt den neuen Modus erst nach einem Neustart und meldet sich danach unter einer
+                // neuen Bluetooth-Adresse: direkt nach dem Neustart selbst suchen und verbinden (statt auf den Dienst zu warten).
                 main.postDelayed({
                     try {
                         device.messager.setRestart { rr -> Log.i(TAG, "Scanner-Neustart: $rr") }
                     } catch (t: Throwable) {
                         Log.e(TAG, "setRestart fehlgeschlagen", t)
                     }
+                    main.postDelayed({ rescanAndConnect(device, 0) }, 2500)
                 }, 800)
             }
             onResult(r)
         }
+    }
+
+    private fun tailOf(mac: String?) = mac?.substringAfter(':', "").orEmpty()
+
+    /**
+     * Sucht nach einem Scanner-Neustart den gleichen Scanner (gleicher hinterer Adressteil) unter seiner neuen Adresse und
+     * verbindet ihn. Wiederholt alle 2,5 s bis zu rund 40 s.
+     */
+    private fun rescanAndConnect(old: BleScannerDevice, attempt: Int) {
+        if (attempt > 16) return
+        val tail = tailOf(old.mac)
+        if (tail.isEmpty()) return
+        // Bereits verbunden (neue Adresse)? Dann fertig.
+        if (devices.any { it.mac != old.mac && tailOf(it.mac) == tail && isConnected(it) }) return
+        val sibling = devices.firstOrNull { it.mac != old.mac && tailOf(it.mac) == tail && it.connectState == BleScannerConnectState.DISCONNECTED }
+        if (sibling != null) {
+            Log.i(TAG, "Scanner nach Neustart gefunden: ${sibling.mac}")
+            connect(sibling) { }
+            return
+        }
+        if (attempt == 0) discard(old)
+        if (!isScanning.value) startScan()
+        main.postDelayed({ rescanAndConnect(old, attempt + 1) }, 2500)
     }
 
     /** Setzt die Signal-Lautstaerke des Scanners (0 = aus, 4 = mittel). */

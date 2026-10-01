@@ -4,6 +4,26 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.5 (19)] – 2026-10-01
+
+### Hinzugefügt
+- **Scanner zurücksetzen (Werkseinstellungen):** Knopf „Zurücksetzen …" in der Scanner-Karte und im Hinweis „Kein Scanner verbunden" mit vier Barcodes in
+  getesteter Reihenfolge (Bluetooth-Verbindung zurücksetzen, Einstellungen aufrufen, Werkseinstellungen wiederherstellen, Beenden und speichern).
+  Läuft der Hintergrunddienst oder ist ein Scanner verbunden, fragt die App vorher und stoppt den Dienst.
+- **Einstellungen sichern / Sicherung einspielen** in der Konfiguration (z. B. nach einem Werksreset); Verbindungsmodus, Funk-, Update- und
+  Werkseinstellungen werden nicht zurückgespielt.
+- Nach „Auf Expertenmodus umstellen" und Neustart sucht die App den Scanner selbst unter seiner neuen Adresse und verbindet ihn (in etwa 7 Sekunden).
+
+### Geändert
+- Scannereinstellungen: kein roter Hinweis mehr im Expertenmodus; neutraler Hinweis „Kein Scanner verbunden", wenn weder Tastatur noch Scanner verbunden sind.
+  Button „Modus-Barcodes" entfernt.
+- Veraltete Scanner-Adressen (nach einem Moduswechsel meldet sich der Scanner unter einer neuen Adresse) werden verworfen; hängende Verbindungen werden neu aufgebaut.
+- Konfiguration: Anzeige bleibt beim Neu-Laden stehen, bis zu drei Leseversuche.
+
+### Behoben
+- Das Symbol des Hintergrunddienstes fehlte: Die App fragt die Benachrichtigungs-Berechtigung (Android 13+) jetzt bei jedem Einschalten des Hintergrund-Empfangs ab.
+- Setup-Barcodes des Scanners (`/*…*/`) landen nicht mehr als Scan in der Liste.
+
 ## [2.4 (18)] – 2026-10-01
 
 ### Hinzugefügt

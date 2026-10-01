@@ -77,6 +77,8 @@ class InventoryViewModel(app: Application) : AndroidViewModel(app) {
     fun addScan(rawBarcode: String, timestamp: Long = System.currentTimeMillis()) {
         val barcode = rawBarcode.trim()
         if (barcode.isEmpty()) return
+        // Setup-Barcodes des Scanners (z. B. "/*SetFun00*/", "/*EnterSet*/") sind Befehle, keine Inventarnummern.
+        if (isScannerCommand(barcode)) return
         val entry = ScanEntry(barcode = barcode, timestamp = timestamp, device = _deviceLabel.value.ifEmpty { null }, dirty = true)
         change { listOf(entry) + it }
         _lastScanned.value = barcode
@@ -119,7 +121,10 @@ class InventoryViewModel(app: Application) : AndroidViewModel(app) {
         return value
     }
 
-    private companion object {
+    companion object {
+        /** Inateck-Setup-Barcodes haben die Form `/*Name*/`. */
+        fun isScannerCommand(code: String) = code.length >= 5 && code.startsWith("/*") && code.endsWith("*/")
+
         const val KEY_DEVICE_LABEL = "device_label"
         const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
     }

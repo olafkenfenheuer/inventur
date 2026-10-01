@@ -80,21 +80,31 @@ fun ScannerConfigPanel(
     var screen by remember { mutableStateOf<ConfigScreen>(ConfigScreen.Root) }
 
     LaunchedEffect(device.mac, reloadKey) {
-        loading = true
+        // Nur beim ersten Laden den Ladeindikator zeigen; bei erneutem Laden bleibt die Anzeige stehen. Bis zu 3 Versuche,
+        // weil der Scanner direkt nach Schreibvorgaengen kurz nicht antwortet.
+        if (rows == null) loading = true
         error = null
-        scanner.getSettings(device) { result ->
-            loading = false
-            result.fold(
-                onSuccess = { list ->
+        for (attempt in 1..3) {
+            var done = false
+            var ok = false
+            scanner.getSettings(device) { result ->
+                result.getOrNull()?.let { list ->
                     rows = list.mapNotNull { map ->
                         val area = map["area"] ?: return@mapNotNull null
                         val name = map["name"] ?: return@mapNotNull null
                         SettingRow(area, name, map["value"] ?: "")
                     }
-                },
-                onFailure = { error = "Einstellungen konnten nicht gelesen werden." },
-            )
+                    ok = true
+                }
+                done = true
+            }
+            var waited = 0
+            while (!done && waited < 6000) { kotlinx.coroutines.delay(100); waited += 100 }
+            if (ok) break
+            kotlinx.coroutines.delay(800)
         }
+        loading = false
+        if (rows == null) error = "Einstellungen konnten nicht gelesen werden."
     }
 
     fun writeSetting(row: SettingRow, newValue: String, playAck: Boolean = true) {
@@ -114,6 +124,40 @@ fun ScannerConfigPanel(
                 Toast.makeText(context, "Schreiben fehlgeschlagen: ${labelFor(row.name)}", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    fun backupSettings() {
+        val list = rows ?: return
+        val n = ScannerBackup.save(context, list)
+        Toast.makeText(context, "$n Einstellungen gesichert", Toast.LENGTH_LONG).show()
+    }
+
+    fun restoreSettings() {
+        val current = rows.orEmpty()
+        val saved = ScannerBackup.load(context)
+        if (saved == null) {
+            Toast.makeText(context, "Keine Sicherung vorhanden – zuerst \"Einstellungen sichern\"", Toast.LENGTH_LONG).show()
+            return
+        }
+        val todo = ScannerBackup.differences(saved, current)
+        if (todo.isEmpty()) {
+            Toast.makeText(context, "Keine Abweichungen zur Sicherung", Toast.LENGTH_LONG).show()
+            return
+        }
+        fun next(i: Int, ok: Int) {
+            if (i >= todo.size) {
+                Toast.makeText(context, "$ok von ${todo.size} Einstellungen wiederhergestellt", Toast.LENGTH_LONG).show()
+                scanner.playAckBeep(device)
+                return
+            }
+            val r = todo[i]
+            scanner.setSetting(device, r.area, r.name, r.value) { res ->
+                // Wert sofort in der Anzeige uebernehmen, ohne den Scanner erneut abzufragen.
+                if (res.isSuccess) rows = rows?.map { if (it.name == r.name) it.copy(value = r.value) else it }
+                next(i + 1, ok + if (res.isSuccess) 1 else 0)
+            }
+        }
+        next(0, 0)
     }
 
     fun writeBulk(names: List<String>, newValue: String) {
@@ -168,6 +212,8 @@ fun ScannerConfigPanel(
                         onWrite = ::writeSetting,
                         onNavigate = { screen = it },
                         onReload = { reloadKey++ },
+                        onBackup = ::backupSettings,
+                        onRestore = ::restoreSettings,
                     )
                     ConfigScreen.ScanModus -> CategoryScreen(scanModusOrder, byName, ::writeSetting)
                     ConfigScreen.BarcodeTyp -> BarcodeTypScreen(
@@ -200,6 +246,8 @@ private fun RootScreen(
     onWrite: (SettingRow, String) -> Unit,
     onNavigate: (ConfigScreen) -> Unit,
     onReload: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
@@ -230,7 +278,12 @@ private fun RootScreen(
         }
         item {
             Spacer(Modifier.size(4.dp))
-            OutlinedButton(onClick = onReload) { Text("Neu laden") }
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = onReload) { Text("Neu laden") }
+                OutlinedButton(onClick = onBackup) { Text("Einstellungen sichern") }
+                OutlinedButton(onClick = onRestore) { Text("Sicherung einspielen") }
+            }
             Spacer(Modifier.size(16.dp))
         }
     }

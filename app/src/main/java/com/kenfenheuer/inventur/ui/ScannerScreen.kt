@@ -150,8 +150,59 @@ fun ScannerScreen(onBack: () -> Unit) {
     // Geraet, dessen Konfiguration gerade angezeigt wird (null = Geraeteliste).
     var configDevice by remember { mutableStateOf<BleScannerDevice?>(null) }
 
-    // Moduswechsel-Barcodes (HID <-> GATT) als Vollbild-Ansicht.
-    var showModeBarcodes by remember { mutableStateOf(false) }
+    // Ohne Benachrichtigungs-Berechtigung (Android 13+) zeigt Android die Dienst-Benachrichtigung samt Symbol nicht.
+    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    fun ensureNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    // Hintergrund-Empfang (Dienst) ein/aus; wird auch vom Reset-Ablauf ausgeschaltet.
+    var backgroundOn by remember { mutableStateOf(com.kenfenheuer.inventur.scanner.ScannerPrefs.backgroundEnabled(context)) }
+    LaunchedEffect(Unit) { if (backgroundOn) ensureNotificationPermission() }
+
+    // Scanner zuruecksetzen (Werkseinstellungen): erst Hinweis/Abfrage, weil dabei der Hintergrunddienst gestoppt und der Scanner getrennt wird.
+    var showResetConfirm by remember { mutableStateOf(false) }
+    var showPairingBarcode by remember { mutableStateOf(false) }
+    fun startReset() {
+        if (backgroundOn || scanner.devices.any { scanner.isConnected(it) }) showResetConfirm = true else showPairingBarcode = true
+    }
+    if (showResetConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showResetConfirm = false },
+            title = { Text("Scanner zuruecksetzen?") },
+            text = {
+                Text(
+                    "Fuer den Reset wird der Hintergrund-Empfang (Dienst) gestoppt und die Verbindung zum Scanner getrennt, damit " +
+                        "der Ablauf nicht gestoert wird. Danach den Scanner in den Android-Bluetooth-Einstellungen entfernen und die " +
+                        "Barcodes scannen. Nach dem Reset die Umstellung auf den Expertenmodus bestaetigen; sie schaltet den " +
+                        "Hintergrund-Empfang wieder ein.",
+                )
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showResetConfirm = false
+                    backgroundOn = false
+                    com.kenfenheuer.inventur.scanner.ScannerPrefs.setBackgroundEnabled(context, false)
+                    com.kenfenheuer.inventur.scanner.ScannerService.stop(context)
+                    scanner.devices.filter { scanner.isConnected(it) }.forEach { scanner.disconnect(it) { } }
+                    showPairingBarcode = true
+                }) { Text("Stoppen und weiter") }
+            },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { showResetConfirm = false }) { Text("Abbrechen") } },
+        )
+    }
+    // Barcodes zum Zuruecksetzen des Scanners (Werkseinstellungen).
+    if (showPairingBarcode) {
+        BluetoothPairingBarcodeDialog(
+            onOpenBluetoothSettings = {
+                showPairingBarcode = false
+                context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+            },
+            onDismiss = { showPairingBarcode = false },
+        )
+    }
 
     // Das SDK aendert connectState ausserhalb von Compose – regelmaessig nachziehen,
     // damit Gerätekarten (Verbinden/Trennen/Konfiguration) den echten Stand zeigen.
@@ -184,22 +235,20 @@ fun ScannerScreen(onBack: () -> Unit) {
                 .padding(12.dp),
         ) {
             Text(
-                if (com.kenfenheuer.inventur.scanner.ScannerPrefs.backgroundEnabled(context))
-                    "Im Expertenmodus kommen Scans als Bluetooth-Nachricht an (Verbindung unten). " +
-                        "Hier kannst du den BCST-47 verbinden, seinen Status pruefen und ihn konfigurieren."
-                else
-                    "Der eigentliche Scan-Empfang laeuft ueber den HID-Tastaturmodus. " +
-                        "Hier kannst du den BCST-47 verbinden, seinen Status pruefen und ihn konfigurieren.",
+                "Scans kommen entweder als Bluetooth-Tastatur (Einfacher Ausgabemodus) oder als Bluetooth-Nachricht " +
+                    "(Expertenmodus, zuverlaessiger und auch im Hintergrund). Hier verbindest du den BCST-47, " +
+                    "pruefst seinen Status und konfigurierst ihn.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.size(12.dp))
 
             val keyboardName = rememberHidKeyboardName()
-            var backgroundOn by remember { mutableStateOf(com.kenfenheuer.inventur.scanner.ScannerPrefs.backgroundEnabled(context)) }
-            val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
-            if (!backgroundOn) {
-                HidStatusBanner(keyboardName)
+            // Im Expertenmodus braucht der Scanner keine Tastatur: Hinweis nur, wenn weder Tastatur noch Scanner verbunden sind.
+            val sdkConnected = scanner.devices.any { scanner.isConnected(it) }
+            scanner.revision.value
+            if (!(keyboardName == null && sdkConnected)) {
+                HidStatusBanner(keyboardName, onShowBarcodes = { startReset() })
                 Spacer(Modifier.size(12.dp))
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -217,9 +266,7 @@ fun ScannerScreen(onBack: () -> Unit) {
                         backgroundOn = on
                         com.kenfenheuer.inventur.scanner.ScannerPrefs.setBackgroundEnabled(context, on)
                         if (on) {
-                            if (Build.VERSION.SDK_INT >= 33 &&
-                                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-                            ) notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            ensureNotificationPermission()
                             com.kenfenheuer.inventur.scanner.ScannerService.start(context)
                         } else {
                             com.kenfenheuer.inventur.scanner.ScannerService.stop(context)
@@ -241,12 +288,6 @@ fun ScannerScreen(onBack: () -> Unit) {
                 }
             }
 
-            // Die Modus-Barcodes brauchen kein Bluetooth – immer zugaenglich.
-            if (showModeBarcodes) {
-                ModeBarcodesPanel(onClose = { showModeBarcodes = false })
-                return@Column
-            }
-
             if (!hasPermission) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -254,9 +295,6 @@ fun ScannerScreen(onBack: () -> Unit) {
                 ) {
                     Button(onClick = { permissionLauncher.launch(requiredBlePermissions()) }) {
                         Text("Bluetooth-Berechtigung erteilen")
-                    }
-                    OutlinedButton(onClick = { showModeBarcodes = true }) {
-                        Text("Modus-Barcodes")
                     }
                 }
                 return@Column
@@ -281,9 +319,6 @@ fun ScannerScreen(onBack: () -> Unit) {
                 ) {
                     Text(if (scanner.isScanning.value) "Suche stoppen" else "Geraete suchen")
                 }
-                OutlinedButton(onClick = { showModeBarcodes = true }) {
-                    Text("Modus-Barcodes")
-                }
                 if (scanner.isScanning.value) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
@@ -297,9 +332,9 @@ fun ScannerScreen(onBack: () -> Unit) {
 
             if (scanner.devices.isEmpty()) {
                 Text(
-                    "Keine Geraete gefunden. Im HID-Tastaturmodus ist der Scanner fuer die " +
-                        "Suche unsichtbar – wechsle ihn ueber \"Modus-Barcodes\" in den " +
-                        "GATT-Modus und starte die Suche erneut.",
+                    "Keine Geraete gefunden. Scanner mit der Ausloesertaste wecken und \"Geraete suchen\" erneut druecken. " +
+                        "Die Inateck-App darf den Scanner nicht belegen. Im Einfachen Ausgabemodus ist der Scanner fuer die " +
+                        "Suche unsichtbar: dort zuerst in den Android-Bluetooth-Einstellungen als Tastatur koppeln.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
             } else {
@@ -324,9 +359,12 @@ fun ScannerScreen(onBack: () -> Unit) {
                             onEnableBackground = { on ->
                                 backgroundOn = on
                                 com.kenfenheuer.inventur.scanner.ScannerPrefs.setBackgroundEnabled(context, on)
-                                if (on) com.kenfenheuer.inventur.scanner.ScannerService.start(context)
-                                else com.kenfenheuer.inventur.scanner.ScannerService.stop(context)
+                                if (on) {
+                                    ensureNotificationPermission()
+                                    com.kenfenheuer.inventur.scanner.ScannerService.start(context)
+                                } else com.kenfenheuer.inventur.scanner.ScannerService.stop(context)
                             },
+                            onReset = { startReset() },
                             context = context,
                         )
                     }
@@ -341,7 +379,7 @@ fun ScannerScreen(onBack: () -> Unit) {
  * keine Scans an – das "Verbinden" hier im Screen (BLE/GATT) reicht dafuer nicht.
  */
 @Composable
-private fun HidStatusBanner(keyboardName: String?) {
+private fun HidStatusBanner(keyboardName: String?, onShowBarcodes: () -> Unit) {
     val context = LocalContext.current
 
     if (keyboardName != null) {
@@ -362,28 +400,32 @@ private fun HidStatusBanner(keyboardName: String?) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
             ),
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    "Keine Scanner-Tastatur gekoppelt!",
+                    "Kein Scanner verbunden",
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
                 Spacer(Modifier.size(4.dp))
                 Text(
-                    "Scans kommen so NICHT in der App an. Der Scanner muss in den " +
-                        "Android-Bluetooth-Einstellungen als Tastatur (HID) gekoppelt werden – " +
-                        "das \"Verbinden\" hier im Screen dient nur der Konfiguration. " +
-                        "Der BCST-47 erscheint dort z. B. als \"Nano …\".",
+                    "Einfacher Ausgabemodus: Den Scanner in den Android-Bluetooth-Einstellungen als Tastatur koppeln " +
+                        "(Name z. B. \"Nano …\"), notfalls vorher den Scanner per Barcode zuruecksetzen (Werkseinstellungen). " +
+                        "Expertenmodus: unten \"Geraete suchen\" und \"Scans im Hintergrund empfangen\" einschalten; den " +
+                        "Scanner dort nicht in Android koppeln.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
                 Spacer(Modifier.size(8.dp))
-                Button(onClick = {
-                    context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
-                }) { Text("Bluetooth-Einstellungen oeffnen") }
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                    }) { Text("Bluetooth-Einstellungen oeffnen") }
+                    OutlinedButton(onClick = onShowBarcodes) { Text("Scanner zuruecksetzen (Werkseinstellungen)") }
+                }
             }
         }
     }
@@ -398,6 +440,7 @@ private fun DeviceCard(
     onInfoChange: (String) -> Unit,
     onConfigure: () -> Unit,
     onEnableBackground: (Boolean) -> Unit,
+    onReset: () -> Unit,
     context: android.content.Context,
 ) {
     var busy by remember(device.mac) { mutableStateOf(false) }
@@ -552,6 +595,7 @@ private fun DeviceCard(
                         }
                     },
                 ) { Text("Konfiguration") }
+                OutlinedButton(onClick = onReset) { Text("Zuruecksetzen …") }
                 if (busy) CircularProgressIndicator(modifier = Modifier.size(20.dp))
             }
 
