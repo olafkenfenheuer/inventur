@@ -7,6 +7,7 @@ Versionierung nach `versionName (versionCode)`.
 ## [Unveröffentlicht]
 
 ### Behoben
+- **„Trennen“ stoppt zuerst den Hintergrunddienst** und trennt dann den Scanner (vorher baute der Dienst die Verbindung wieder auf).
 - Scanner-Karte: Die Knöpfe brechen auf schmalen Bildschirmen (Handy) um, statt zusammengequetscht zu werden.
 
 ### Dokumentation
