@@ -576,6 +576,12 @@ private fun DeviceCard(
                         enabled = !busy,
                         onClick = {
                             busy = true
+                            // Der Hintergrunddienst haelt die Verbindung und baut sie sonst nach wenigen Sekunden wieder auf:
+                            // zuerst den Dienst stoppen (Hintergrund-Empfang aus), dann trennen – erst dann ist der Scanner frei.
+                            if (com.kenfenheuer.inventur.scanner.ScannerPrefs.backgroundEnabled(context)) {
+                                onEnableBackground(false)
+                                Toast.makeText(context, "Hintergrund-Empfang ausgeschaltet – Scanner ist frei", Toast.LENGTH_LONG).show()
+                            }
                             scanner.disconnect(device) { busy = false }
                         },
                     ) { Text("Trennen") }
