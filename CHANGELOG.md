@@ -4,6 +4,14 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [Unveröffentlicht]
+
+### Behoben
+- Scanner-Karte: Die Knöpfe brechen auf schmalen Bildschirmen (Handy) um, statt zusammengequetscht zu werden.
+
+### Dokumentation
+- README und Screenshots (Handy und Tablet) auf den aktuellen Stand gebracht.
+
 ## [2.5 (19)] – 2026-10-01
 
 ### Hinzugefügt

@@ -552,7 +552,12 @@ private fun DeviceCard(
 
             Spacer(Modifier.size(8.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            // FlowRow: auf schmalen Bildschirmen (Handy) brechen die Knoepfe um, statt zu schrumpfen.
+            @OptIn(ExperimentalLayoutApi::class)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 if (!connected) {
                     Button(
                         enabled = !busy,

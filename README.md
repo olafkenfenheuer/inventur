@@ -61,6 +61,18 @@ auf Werkseinstellungen zurückzusetzen.
   <i>Startbildschirm &nbsp;·&nbsp; Inventurliste &nbsp;·&nbsp; Kamera-Scan &nbsp;·&nbsp; Nummer von Hand eingeben &nbsp;·&nbsp; Bemerkung erfassen &nbsp;·&nbsp; Über die App</i>
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/scanner-phone.png" width="220" alt="Scannereinstellungen mit verbundenem Scanner im Expertenmodus">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/scanner-config-phone.png" width="220" alt="Scanner-Konfiguration nach Kategorien">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/scanner-reset-phone.png" width="220" alt="Scanner zurücksetzen (Werkseinstellungen) mit vier Barcodes">
+</p>
+
+<p align="center">
+  <i>Scannereinstellungen (Expertenmodus) &nbsp;·&nbsp; Konfiguration nach Kategorien &nbsp;·&nbsp; Scanner zurücksetzen (vier Barcodes)</i>
+</p>
+
 ### Tablet
 
 <p align="center">
@@ -73,19 +85,28 @@ auf Werkseinstellungen zurückzusetzen.
 <p align="center">
   <img src="docs/screenshots/device-dialog.png" width="420" alt="Dialog Gerät / Benutzer zum Festlegen der Kennung">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/scanner.png" width="420" alt="Scannereinstellungen mit HID-Statusbanner und Modus-Barcodes">
+  <img src="docs/screenshots/scanner.png" width="420" alt="Scannereinstellungen mit verbundenem Scanner im Expertenmodus">
 </p>
 <p align="center">
-  <i>Geräte-/Benutzerkennung festlegen &nbsp;·&nbsp; Scannereinstellungen mit HID-Statusbanner</i>
+  <i>Geräte-/Benutzerkennung festlegen &nbsp;·&nbsp; Scannereinstellungen: Expertenmodus, Hintergrund-Empfang, Scanner-Cache</i>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/scanner-config.png" width="420" alt="Scanner-Konfiguration nach Kategorien gegliedert: Scan-Modus, Barcode-Typ, Datenverarbeitung, Codierungseinstellungen, Cache-Verwaltung">
+  <img src="docs/screenshots/scanner-hint.png" width="420" alt="Hinweis Kein Scanner verbunden mit Knopf zum Zurücksetzen">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/mode-barcodes.png" width="420" alt="Moduswechsel-QR-Codes direkt auf dem Display">
+  <img src="docs/screenshots/scanner-reset.png" width="420" alt="Scanner zurücksetzen (Werkseinstellungen) mit vier Barcodes direkt auf dem Display">
 </p>
 <p align="center">
-  <i>Konfiguration nach Kategorien &nbsp;·&nbsp; Moduswechsel-QR-Codes (GATT ↔ HID) vom Display abscannen</i>
+  <i>Hinweis „Kein Scanner verbunden" &nbsp;·&nbsp; Scanner zurücksetzen: vier Barcodes vom Display abscannen</i>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/scanner-config.png" width="420" alt="Scanner-Konfiguration nach Kategorien gegliedert">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/scanner-config-backup.png" width="420" alt="Konfiguration: Einstellungen sichern und Sicherung einspielen">
+</p>
+<p align="center">
+  <i>Konfiguration nach Kategorien &nbsp;·&nbsp; Einstellungen sichern und Sicherung einspielen</i>
 </p>
 
 <p align="center">
