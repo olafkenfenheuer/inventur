@@ -546,7 +546,7 @@ private fun DeviceCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                text = "Status: " + connectStateLabel(state),
+                text = "Status: " + scanner.statusLabel(device),
                 style = MaterialTheme.typography.bodySmall,
             )
 
@@ -708,12 +708,4 @@ private fun DeviceCard(
             }
         }
     }
-}
-
-private fun connectStateLabel(state: BleScannerConnectState): String = when (state) {
-    BleScannerConnectState.CONNECTED -> "verbunden"
-    BleScannerConnectState.CONNECTING -> "verbindet …"
-    BleScannerConnectState.DISCONNECTING -> "trennt …"
-    BleScannerConnectState.DISCONNECTED -> "getrennt"
-    BleScannerConnectState.UNKNOWN -> "unbekannt"
 }

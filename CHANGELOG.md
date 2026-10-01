@@ -4,6 +4,11 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [Unveröffentlicht]
+
+### Behoben
+- Status der Scanner-Karte: „verbindet …“ erscheint nur noch, solange wirklich ein Verbindungsversuch läuft (höchstens 15 s); der SDK-Zustand bleibt nach einem gescheiterten Versuch sonst stehen. Danach steht „getrennt“.
+
 ## [2.5.1 (20)] – 2026-10-01
 
 ### Behoben

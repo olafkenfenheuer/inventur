@@ -65,6 +65,21 @@ class ScannerManager {
         }
     }
 
+    /**
+     * Statustext der Scanner-Karte. Das SDK laesst den Zustand "verbindet" nach einem gescheiterten Versuch stehen; angezeigt wird
+     * "verbindet" nur, solange ein Versuch der App laeuft (hoechstens 15 s), sonst "getrennt".
+     */
+    fun statusLabel(device: BleScannerDevice): String = when (device.connectState) {
+        BleScannerConnectState.CONNECTED -> "verbunden"
+        BleScannerConnectState.CONNECTING -> {
+            val started = device.mac?.let { connectStarted[it] }
+            if (started != null && System.currentTimeMillis() - started < 15_000) "verbindet …" else "getrennt"
+        }
+        BleScannerConnectState.DISCONNECTING -> "trennt …"
+        BleScannerConnectState.DISCONNECTED -> "getrennt"
+        BleScannerConnectState.UNKNOWN -> "unbekannt"
+    }
+
     /** Anzeigename: SDK-Name, sonst der gemerkte Name zur Adresse, sonst "Scanner" mit dem Ende der Adresse. */
     fun displayName(device: BleScannerDevice): String {
         val mac = device.mac
@@ -174,10 +189,14 @@ class ScannerManager {
         isScanning.value = false
     }
 
+    private val connectStarted = HashMap<String, Long>()
+
     fun connect(device: BleScannerDevice, onResult: (Result<Unit>) -> Unit) {
+        device.mac?.let { connectStarted[it] = System.currentTimeMillis() }
         try {
             device.connect { result ->
                 main.post {
+                    device.mac?.let { connectStarted.remove(it) }
                     bump()
                     if (result.isSuccess) onConnected(device)
                     onResult(result)
