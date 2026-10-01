@@ -4,6 +4,24 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.4 (17)] – 2026-10-01
+
+### Hinzugefügt
+- **Bildschirm anlassen:** Solange die App offen ist, bleibt der Bildschirm an (Menü → „Bildschirm anlassen", Standard: an).
+- **Scanner-Cache (Inventurmodus) per USB-Kabel hochladen:** Beim Anstecken des Scanners per USB fragt ein Popup, ob der Cache hochgeladen werden soll;
+  danach optional „Cache leeren". Schalter „Scannen per Cache" sowie Anzeige/„Cache leeren" in den Scannereinstellungen.
+- **Scans im Hintergrund empfangen (Expertenmodus):** Der Scanner sendet im Expertenmodus Barcodes als Bluetooth-Nachricht; ein Dienst im Vordergrund
+  hält die Verbindung auch bei ausgeschaltetem Bildschirm. Geführte Umstellung auf den Expertenmodus und Schalter „Expertenmodus" in den
+  Scannereinstellungen; hängende Verbindungen werden neu aufgebaut.
+- Scannereinstellungen verbinden sich beim Öffnen automatisch mit dem Scanner und zeigen denselben Scanner nur einmal.
+
+### Geändert
+- Der Button „HID + Enter" ist entfernt (er stellte entgegen der Beschriftung auf den Expertenmodus).
+- Das Projekt wird nun aus dem gemeinsamen Kern der Variante „classic" gebaut (siehe `scripts/export-classic.sh` im Pro-Projekt); JNA kommt als
+  16-KB-kompatible Bibliothek aus Gradle statt aus `app/libs`.
+
+### Behoben
+- Absturz in den Scannereinstellungen („Key … was already used"), wenn derselbe Scanner doppelt in der Geräteliste stand.
 ## [2.3.1 (17)] – 2026-08-25
 
 ### Behoben

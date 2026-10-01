@@ -5,11 +5,17 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// Signing-Zugangsdaten aus ungetrackter keystore.properties (nicht im Git).
-val keystorePropsFile = rootProject.file("keystore.properties")
-val keystoreProps = Properties().apply {
-    if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
+// Signing-Zugangsdaten aus ungetrackten Dateien (nicht im Git): je Variante eine eigene Datei/Keystore.
+fun loadProps(name: String) = Properties().apply {
+    val f = rootProject.file(name)
+    if (f.exists()) f.inputStream().use { load(it) }
 }
+// Die Variante "pro" (Server-Abgleich) existiert nur, wenn src/pro vorhanden ist. Ohne diesen Ordner
+// (oeffentliches Repo "inventur") baut das Projekt nur die Variante "classic".
+val hasPro = file("src/pro").exists()
+val keystorePropsPro = loadProps("keystore.properties")
+// Im Pro-Repo liegt der Schluessel der alten App in keystore-classic.properties, im oeffentlichen Repo in keystore.properties.
+val keystorePropsClassic = loadProps(if (hasPro) "keystore-classic.properties" else "keystore.properties")
 
 android {
     namespace = "com.kenfenheuer.inventur"
@@ -18,11 +24,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.kenfenheuer.inventur"
         minSdk = 24
         targetSdk = 36
-        versionCode = 17
-        versionName = "2.3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -32,22 +35,48 @@ android {
         }
     }
 
+    // Zwei Varianten aus demselben Kern: "classic" (Inventur, nur lokale Liste) und "pro" (mit Server-Abgleich).
+    flavorDimensions += "edition"
+    productFlavors {
+        create("classic") {
+            dimension = "edition"
+            applicationId = "com.kenfenheuer.inventur"
+            versionCode = 17
+            versionName = "2.4"
+            resValue("string", "app_name", "Inventur")
+        }
+        if (hasPro) {
+            create("pro") {
+                dimension = "edition"
+                applicationId = "com.kenfenheuer.inventurpro"
+                versionCode = 8
+                versionName = "1.6"
+                resValue("string", "app_name", "Inventur Pro")
+            }
+        }
+    }
+
     signingConfigs {
-        if (keystoreProps.isNotEmpty()) {
-            create("release") {
-                storeFile = file(keystoreProps.getProperty("storeFile"))
-                storePassword = keystoreProps.getProperty("storePassword")
-                keyAlias = keystoreProps.getProperty("keyAlias")
-                keyPassword = keystoreProps.getProperty("keyPassword")
+        if (hasPro && keystorePropsPro.isNotEmpty()) {
+            create("releasePro") {
+                storeFile = file(keystorePropsPro.getProperty("storeFile"))
+                storePassword = keystorePropsPro.getProperty("storePassword")
+                keyAlias = keystorePropsPro.getProperty("keyAlias")
+                keyPassword = keystorePropsPro.getProperty("keyPassword")
+            }
+        }
+        if (keystorePropsClassic.isNotEmpty()) {
+            create("releaseClassic") {
+                storeFile = file(keystorePropsClassic.getProperty("storeFile"))
+                storePassword = keystorePropsClassic.getProperty("storePassword")
+                keyAlias = keystorePropsClassic.getProperty("keyAlias")
+                keyPassword = keystorePropsClassic.getProperty("keyPassword")
             }
         }
     }
 
     buildTypes {
         release {
-            if (keystoreProps.isNotEmpty()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -61,6 +90,7 @@ android {
     }
     buildFeatures {
         compose = true
+        resValues = true
     }
 
     packaging {
@@ -76,6 +106,18 @@ android {
         jniLibs {
             useLegacyPackaging = true
         }
+    }
+}
+
+// Release-Signatur je Variante (Debug bleibt mit dem Debug-Schluessel signiert, damit Updates installierbar bleiben).
+androidComponents {
+    // Debug-Build der alten App parallel zur installierten (andere Signatur) testen koennen.
+    onVariants(selector().withBuildType("debug")) { v ->
+        if (v.flavorName == "classic") v.applicationId.set(v.applicationId.get() + ".debug")
+    }
+    onVariants(selector().withBuildType("release")) { v ->
+        val name = if (v.flavorName == "pro") "releasePro" else "releaseClassic"
+        android.signingConfigs.findByName(name)?.let { v.signingConfig.setConfig(it) }
     }
 }
 

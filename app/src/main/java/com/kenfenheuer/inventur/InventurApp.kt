@@ -8,6 +8,8 @@ class InventurApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        com.kenfenheuer.inventur.scanner.ScanBus.init(this)
+        com.kenfenheuer.inventur.scanner.ScannerManager.shared.init(this)
         try {
             // Initialisiert das Inateck BLE-SDK (FastBle) fuer die Scanner-Verwaltung.
             BleListManager.init(this)

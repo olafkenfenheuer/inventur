@@ -14,6 +14,7 @@ class InventoryRepository(context: Context) {
     private val gson = Gson()
     private val file = File(context.filesDir, "scans.json")
 
+    @Synchronized
     fun load(): List<ScanEntry> {
         if (!file.exists()) return emptyList()
         return try {
@@ -24,6 +25,7 @@ class InventoryRepository(context: Context) {
         }
     }
 
+    @Synchronized
     fun save(items: List<ScanEntry>) {
         try {
             file.writeText(gson.toJson(items))

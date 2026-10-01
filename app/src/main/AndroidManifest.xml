@@ -22,6 +22,11 @@
         android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
+    <!-- Scanner-Empfang im Hintergrund (Expertenmodus): Dienst im Vordergrund mit Benachrichtigung -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="false" />
@@ -56,6 +61,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".scanner.ScannerService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

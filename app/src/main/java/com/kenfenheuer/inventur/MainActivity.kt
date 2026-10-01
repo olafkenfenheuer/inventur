@@ -4,10 +4,13 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -38,6 +41,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Scanner-Empfang im Hintergrund (Expertenmodus), falls aktiviert.
+        if (com.kenfenheuer.inventur.scanner.ScannerPrefs.backgroundEnabled(this)) {
+            com.kenfenheuer.inventur.scanner.ScannerService.start(this)
+        }
+        // Bildschirm anlassen, solange die App offen ist (Einstellung im Menue, Standard: an).
+        lifecycleScope.launch {
+            viewModel.keepScreenOn.collect { on ->
+                if (on) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+        }
         setContent {
             InventurTheme {
                 Surface(

@@ -43,10 +43,12 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -75,11 +77,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -99,7 +103,7 @@ private val rowTimeFormat = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.GERMA
 
 const val COPYRIGHT_NOTICE = "© 2026 Olaf Kenfenheuer"
 
-private fun Context.findMainActivity(): MainActivity? {
+internal fun Context.findMainActivity(): MainActivity? {
     var ctx: Context? = this
     while (ctx is ContextWrapper) {
         if (ctx is MainActivity) return ctx
@@ -114,11 +118,13 @@ fun InventoryScreen(
     viewModel: InventoryViewModel,
     onOpenScanner: () -> Unit,
     onOpenCameraScan: () -> Unit,
+    onOpenSync: () -> Unit,
 ) {
     val context = LocalContext.current
     val items by viewModel.items.collectAsState()
     val lastScanned by viewModel.lastScanned.collectAsState()
     val deviceLabel by viewModel.deviceLabel.collectAsState()
+    val keepScreenOn by viewModel.keepScreenOn.collectAsState()
 
     var showClearDialog by remember { mutableStateOf(false) }
     var showManualDialog by remember { mutableStateOf(false) }
@@ -249,6 +255,25 @@ fun InventoryScreen(
                                     showMenu = false
                                     onOpenScanner()
                                 },
+                            )
+                            if (com.kenfenheuer.inventur.data.SyncFeature.available) {
+                                DropdownMenuItem(
+                                    text = { Text("Konto & Sync") },
+                                    leadingIcon = {
+                                        Icon(Icons.Filled.Sync, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        showMenu = false
+                                        onOpenSync()
+                                    },
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text("Bildschirm anlassen") },
+                                trailingIcon = {
+                                    Checkbox(checked = keepScreenOn, onCheckedChange = null)
+                                },
+                                onClick = { viewModel.setKeepScreenOn(!keepScreenOn) },
                             )
                             DropdownMenuItem(
                                 text = { Text("Über die App") },
@@ -382,7 +407,16 @@ fun InventoryScreen(
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
             title = { Text("Liste leeren?") },
-            text = { Text("Alle erfassten Scans werden unwiderruflich entfernt.") },
+            text = {
+                Text(
+                    if (viewModel.isSyncLinked()) {
+                        "Alle Scans werden aus der Liste auf diesem Gerät entfernt. " +
+                            "Auf dem Server bleiben sie erhalten."
+                    } else {
+                        "Alle erfassten Scans werden unwiderruflich entfernt."
+                    },
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.clearAll()
@@ -530,6 +564,8 @@ private fun DeviceLabelDialog(
 ) {
     val context = LocalContext.current
     var text by remember { mutableStateOf(current) }
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
 
     // HID-Scan-Erfassung waehrend der Texteingabe pausieren (wie bei den anderen
     // Eingabedialogen), damit Tastendruecke nicht als Scan interpretiert werden.
@@ -537,6 +573,14 @@ private fun DeviceLabelDialog(
         val activity = context.findMainActivity()
         activity?.scanCaptureEnabled = false
         onDispose { activity?.scanCaptureEnabled = true }
+    }
+
+    // Feld sofort fokussieren und die Bildschirmtastatur ausdruecklich anfordern:
+    // Bei gekoppeltem HID-Scanner (externe Tastatur) blendet Android sie sonst
+    // mitunter nicht von selbst ein.
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        keyboard?.show()
     }
 
     AlertDialog(
@@ -558,7 +602,7 @@ private fun DeviceLabelDialog(
                     onValueChange = { text = it },
                     label = { Text("z. B. Tablet-1 oder Max Mustermann") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 )
             }
         },
@@ -714,7 +758,7 @@ private fun AboutDialog(onDismiss: () -> Unit) {
                 )
             }
         },
-        title = { Text("Inventur") },
+        title = { Text(stringResource(R.string.app_name)) },
         text = {
             Column {
                 if (versionName.isNotEmpty()) {

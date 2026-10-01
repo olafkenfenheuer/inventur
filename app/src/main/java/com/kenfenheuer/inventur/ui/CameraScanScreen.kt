@@ -60,7 +60,7 @@ import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.DecoratedBarcodeView
 
-private fun Context.findActivity(): Activity? {
+internal fun Context.findActivity(): Activity? {
     var ctx: Context? = this
     while (ctx is ContextWrapper) {
         if (ctx is Activity) return ctx
@@ -220,7 +220,7 @@ fun CameraScanScreen(
 }
 
 @Composable
-private fun BarcodeScannerView(
+internal fun BarcodeScannerView(
     modifier: Modifier,
     torchOn: Boolean,
     onBarcode: (String) -> Unit,

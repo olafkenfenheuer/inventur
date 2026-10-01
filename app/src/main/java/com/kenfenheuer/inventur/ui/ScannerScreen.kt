@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,7 +59,7 @@ import com.inateck.scanner.ble.BleScannerDevice
 import com.kenfenheuer.inventur.scanner.ScannerManager
 
 /** USB-HID Vendor/Product-ID des Inateck BCST-47 (per sysfs-uhid-Pfad ermittelt). */
-private const val SCANNER_VENDOR_ID = 0x3373
+const val SCANNER_VENDOR_ID = 0x3373
 private const val SCANNER_PRODUCT_ID = 0xB34C
 
 /**
@@ -118,7 +120,7 @@ private fun requiredBlePermissions(): Array<String> =
 @Composable
 fun ScannerScreen(onBack: () -> Unit) {
     val context = LocalContext.current
-    val scanner = remember { ScannerManager() }
+    val scanner = remember { ScannerManager.shared.also { it.init(context) } }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -134,6 +136,12 @@ fun ScannerScreen(onBack: () -> Unit) {
         hasPermission = result.values.all { it }
         if (hasPermission) scanner.startScan()
         else Toast.makeText(context, "Bluetooth-Berechtigung wird benoetigt", Toast.LENGTH_LONG).show()
+    }
+
+    // Beim ersten Oeffnen die Bluetooth-Berechtigung direkt anfragen, statt erst auf
+    // den Button zu warten (der Button bleibt fuer eine zuvor abgelehnte Anfrage).
+    LaunchedEffect(Unit) {
+        if (!hasPermission) permissionLauncher.launch(requiredBlePermissions())
     }
 
     // Ergebnisse (Akku/Version) je Geraet.
@@ -176,22 +184,61 @@ fun ScannerScreen(onBack: () -> Unit) {
                 .padding(12.dp),
         ) {
             Text(
-                "Der eigentliche Scan-Empfang laeuft ueber den HID-Tastaturmodus. " +
-                    "Hier kannst du den BCST-47 verbinden, seinen Status pruefen und ihn konfigurieren.",
+                if (com.kenfenheuer.inventur.scanner.ScannerPrefs.backgroundEnabled(context))
+                    "Im Expertenmodus kommen Scans als Bluetooth-Nachricht an (Verbindung unten). " +
+                        "Hier kannst du den BCST-47 verbinden, seinen Status pruefen und ihn konfigurieren."
+                else
+                    "Der eigentliche Scan-Empfang laeuft ueber den HID-Tastaturmodus. " +
+                        "Hier kannst du den BCST-47 verbinden, seinen Status pruefen und ihn konfigurieren.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.size(12.dp))
 
             val keyboardName = rememberHidKeyboardName()
-            HidStatusBanner(keyboardName)
+            var backgroundOn by remember { mutableStateOf(com.kenfenheuer.inventur.scanner.ScannerPrefs.backgroundEnabled(context)) }
+            val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+            if (!backgroundOn) {
+                HidStatusBanner(keyboardName)
+                Spacer(Modifier.size(12.dp))
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Scans im Hintergrund empfangen", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        if (backgroundOn) "An (Expertenmodus des Scanners): Die App hält die Bluetooth-Verbindung auch bei ausgeschaltetem Bildschirm und zeigt dazu eine Benachrichtigung."
+                        else "Aus: Scans kommen nur über die Bluetooth-Tastatur (Einfacher Ausgabemodus).",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                androidx.compose.material3.Switch(
+                    checked = backgroundOn,
+                    onCheckedChange = { on ->
+                        backgroundOn = on
+                        com.kenfenheuer.inventur.scanner.ScannerPrefs.setBackgroundEnabled(context, on)
+                        if (on) {
+                            if (Build.VERSION.SDK_INT >= 33 &&
+                                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                            ) notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            com.kenfenheuer.inventur.scanner.ScannerService.start(context)
+                        } else {
+                            com.kenfenheuer.inventur.scanner.ScannerService.stop(context)
+                        }
+                    },
+                )
+            }
             Spacer(Modifier.size(12.dp))
 
             // Per HID-Tastatur gekoppelter Scanner ist per BLE-Suche unsichtbar –
             // trotzdem als (bonded) Geraet in die Liste aufnehmen, damit er
             // konfigurierbar bleibt, ohne erst den Modus zu wechseln.
             LaunchedEffect(keyboardName) {
-                keyboardName?.let { scanner.ensureBondedKeyboardDevice(context, it) }
+                if (keyboardName != null) {
+                    scanner.ensureBondedKeyboardDevice(context, keyboardName)
+                } else if (hasPermission) {
+                    // Expertenmodus: keine HID-Tastatur, der gekoppelte Scanner ist trotzdem per Adresse verbindbar.
+                    scanner.addBondedScanner(context)
+                }
             }
 
             // Die Modus-Barcodes brauchen kein Bluetooth – immer zugaenglich.
@@ -256,14 +303,30 @@ fun ScannerScreen(onBack: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                 )
             } else {
+                // Derselbe Scanner kann doppelt erscheinen (HID "Nano …" AC:… und Expertenmodus "HPRT-…" AB:…, gleiche
+                // Adresse bis auf das erste Byte): die Karte des verbundenen bzw. zuletzt verbundenen Geraets genuegt.
+                val lastMac = com.kenfenheuer.inventur.scanner.ScannerPrefs.lastMac(context)
+                fun tail(mac: String?) = mac?.substringAfter(':', "")
+                val visible = scanner.devices.toList().filter { d ->
+                    scanner.devices.none { o ->
+                        o.mac != d.mac && tail(o.mac) == tail(d.mac) && tail(d.mac)?.isNotEmpty() == true &&
+                            (scanner.isConnected(o) || (o.mac == lastMac && !scanner.isConnected(d)))
+                    }
+                }.distinctBy { it.mac ?: it.identifier } // gleiche Adresse nie doppelt (Compose-Schluessel muss eindeutig sein)
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(scanner.devices, key = { it.mac ?: it.identifier }) { device ->
+                    items(visible, key = { it.mac ?: it.identifier }) { device ->
                         DeviceCard(
                             device = device,
                             scanner = scanner,
                             info = info[device.mac],
                             onInfoChange = { text -> device.mac?.let { info[it] = text } },
                             onConfigure = { configDevice = device },
+                            onEnableBackground = { on ->
+                                backgroundOn = on
+                                com.kenfenheuer.inventur.scanner.ScannerPrefs.setBackgroundEnabled(context, on)
+                                if (on) com.kenfenheuer.inventur.scanner.ScannerService.start(context)
+                                else com.kenfenheuer.inventur.scanner.ScannerService.stop(context)
+                            },
                             context = context,
                         )
                     }
@@ -334,9 +397,16 @@ private fun DeviceCard(
     info: String?,
     onInfoChange: (String) -> Unit,
     onConfigure: () -> Unit,
+    onEnableBackground: (Boolean) -> Unit,
     context: android.content.Context,
 ) {
     var busy by remember(device.mac) { mutableStateOf(false) }
+    var confirmClearCache by remember(device.mac) { mutableStateOf(false) }
+    // Einstellung "inventory_mode" (Scannen per Cache = an, online = aus); null = noch nicht gelesen.
+    var inventoryRow by remember(device.mac) { mutableStateOf<SettingRow?>(null) }
+    // bt_mode_low: 0 = Expertenmodus, 1 = Einfacher Ausgabemodus.
+    var modeRow by remember(device.mac) { mutableStateOf<SettingRow?>(null) }
+    var offerExpert by remember(device.mac) { mutableStateOf(false) }
 
     // revision lesen, damit jede Statusaenderung diese Karte neu zusammensetzt.
     @Suppress("UNUSED_EXPRESSION")
@@ -346,6 +416,79 @@ private fun DeviceCard(
     // koennen sonst widerspruechliche UI ergeben (Status "verbunden" + Button "Verbinden").
     val state = device.connectState
     val connected = state == BleScannerConnectState.CONNECTED
+
+    // Beim Oeffnen einmal automatisch verbinden (nicht erneut nach "Trennen").
+    var autoConnectTried by remember(device.mac) { mutableStateOf(false) }
+    LaunchedEffect(device.mac, state) {
+        if (!autoConnectTried && state == BleScannerConnectState.DISCONNECTED) {
+            autoConnectTried = true
+            busy = true
+            scanner.connect(device) { result ->
+                busy = false
+                if (result.isFailure) Toast.makeText(context, "Verbindung fehlgeschlagen", Toast.LENGTH_SHORT).show()
+            }
+        } else if (state == BleScannerConnectState.CONNECTED) {
+            autoConnectTried = true
+        }
+    }
+
+    LaunchedEffect(connected, device.mac) {
+        if (!connected) { inventoryRow = null; modeRow = null; return@LaunchedEffect }
+        kotlinx.coroutines.delay(1500) // Scanner braucht nach dem Verbinden einen Moment
+        repeat(3) {
+            if (inventoryRow != null && modeRow != null) return@LaunchedEffect
+            scanner.getSettings(device) { r ->
+                val list = r.getOrNull() ?: return@getSettings
+                list.firstOrNull { it["name"] == "inventory_mode" }?.let { m ->
+                    inventoryRow = SettingRow(m["area"].orEmpty(), "inventory_mode", m["value"].orEmpty())
+                }
+                list.firstOrNull { it["name"] == "bt_mode_low" }?.let { m ->
+                    modeRow = SettingRow(m["area"].orEmpty(), "bt_mode_low", m["value"].orEmpty())
+                    // Einfacher Ausgabemodus erkannt: einmalig die Umstellung auf den Expertenmodus anbieten.
+                    if (m["value"] == "1" && !com.kenfenheuer.inventur.scanner.ScannerPrefs.expertOfferDismissed(context) &&
+                        !com.kenfenheuer.inventur.scanner.ScannerPrefs.backgroundEnabled(context)
+                    ) offerExpert = true
+                }
+            }
+            kotlinx.coroutines.delay(2500)
+        }
+    }
+
+    if (offerExpert) {
+        AlertDialog(
+            onDismissRequest = { offerExpert = false },
+            title = { Text("Auf Expertenmodus umstellen?") },
+            text = {
+                Text(
+                    "Im Expertenmodus kommen Scans als Bluetooth-Nachricht an: zuverlässiger, auch im Hintergrund und bei " +
+                        "ausgeschaltetem Bildschirm (die App zeigt dazu eine Benachrichtigung). Der Scanner trennt sich kurz " +
+                        "und verbindet sich neu. Die Inateck-App darf dabei nicht mit dem Scanner verbunden sein.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    offerExpert = false
+                    val row = modeRow ?: return@TextButton
+                    scanner.setExpertMode(device, row.area, true) { r ->
+                        if (r.isSuccess) {
+                            modeRow = row.copy(value = "0")
+                            onEnableBackground(true)
+                            Toast.makeText(context, "Expertenmodus – Scanner verbindet neu", Toast.LENGTH_LONG).show()
+                        } else Toast.makeText(context, "Umstellen fehlgeschlagen", Toast.LENGTH_SHORT).show()
+                    }
+                }) { Text("Umstellen") }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        offerExpert = false
+                        com.kenfenheuer.inventur.scanner.ScannerPrefs.setExpertOfferDismissed(context, true)
+                    }) { Text("Nicht mehr fragen") }
+                    TextButton(onClick = { offerExpert = false }) { Text("Später") }
+                }
+            },
+        )
+    }
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -414,36 +557,94 @@ private fun DeviceCard(
 
             if (connected) {
                 Spacer(Modifier.size(8.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = {
-                        scanner.getBattery(device) { r ->
-                            onInfoChange(r.fold({ "Akku: $it %" }, { "Akku: Fehler" }))
-                        }
-                    }) { Text("Akku") }
-                    OutlinedButton(onClick = {
-                        scanner.getVersion(device) { r ->
-                            onInfoChange(r.fold({ "Version: $it" }, { "Version: Fehler" }))
-                        }
-                    }) { Text("Version") }
-                    OutlinedButton(onClick = {
-                        scanner.setVolume(device, 4) { r ->
-                            Toast.makeText(
-                                context,
-                                if (r.isSuccess) "Lautstaerke gesetzt" else "Fehler",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        }
-                    }) { Text("Ton an") }
-                    Button(onClick = {
-                        scanner.setHidModeWithEnter(device) { r ->
-                            Toast.makeText(
-                                context,
-                                if (r.isSuccess) "HID-Modus gesetzt – Scanner koppelt neu als Tastatur"
-                                else "Fehler beim Umschalten",
-                                Toast.LENGTH_LONG,
-                            ).show()
-                        }
-                    }) { Text("HID + Enter") }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Expertenmodus", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            when (modeRow?.value) {
+                                null -> "Einstellung wird gelesen …"
+                                "0" -> "An: Scans kommen als Bluetooth-Nachricht (zuverlässig, auch im Hintergrund)."
+                                else -> "Aus: Einfacher Ausgabemodus, der Scanner arbeitet als Bluetooth-Tastatur."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    androidx.compose.material3.Switch(
+                        enabled = modeRow != null,
+                        checked = modeRow?.value == "0",
+                        onCheckedChange = { on ->
+                            val row = modeRow ?: return@Switch
+                            if (on) offerExpert = true else scanner.setExpertMode(device, row.area, false) { r ->
+                                if (r.isSuccess) {
+                                    modeRow = row.copy(value = "1")
+                                    onEnableBackground(false)
+                                    Toast.makeText(context, "Einfacher Ausgabemodus – Scanner verbindet neu als Tastatur", Toast.LENGTH_LONG).show()
+                                } else Toast.makeText(context, "Umstellen fehlgeschlagen", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                    )
+                }
+                Spacer(Modifier.size(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Scannen per Cache", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            if (inventoryRow == null) "Einstellung wird gelesen …"
+                            else if (inventoryRow?.value == "1") "An: Scans bleiben im Scanner und werden später per USB-Kabel hochgeladen."
+                            else "Aus: Scans kommen sofort per Bluetooth in die App (online).",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    androidx.compose.material3.Switch(
+                        enabled = inventoryRow != null,
+                        checked = inventoryRow?.value == "1",
+                        onCheckedChange = { on ->
+                            val row = inventoryRow ?: return@Switch
+                            val v = if (on) "1" else "0"
+                            scanner.setSetting(device, row.area, row.name, v) { r ->
+                                if (r.isSuccess) {
+                                    inventoryRow = row.copy(value = v)
+                                    scanner.playAckBeep(device)
+                                } else {
+                                    Toast.makeText(context, "Umschalten fehlgeschlagen", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                    )
+                }
+                // Cache-Optionen nur im Modus "Scannen per Cache".
+                if (inventoryRow?.value == "1") {
+                    Spacer(Modifier.size(8.dp))
+                    Text("Scanner-Cache (Inventurmodus)", style = MaterialTheme.typography.titleSmall)
+                    Text("Hochladen: Scanner per USB-Kabel anschließen, dann erscheint ein Popup.", style = MaterialTheme.typography.bodySmall)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = {
+                            scanner.getCacheCount(device) { r ->
+                                onInfoChange(r.fold({ "Im Scanner-Cache: $it Scans" }, { "Cache: Fehler" }))
+                            }
+                        }) { Text("Anzahl") }
+                        OutlinedButton(onClick = { confirmClearCache = true }) { Text("Cache leeren") }
+                    }
+                    if (confirmClearCache) {
+                        AlertDialog(
+                            onDismissRequest = { confirmClearCache = false },
+                            title = { Text("Scanner-Cache leeren?") },
+                            text = { Text("Alle im Scanner gespeicherten Scans werden gelöscht. Vorher hochladen, sonst sind sie weg.") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    confirmClearCache = false
+                                    scanner.clearCache(device) { r ->
+                                        Toast.makeText(
+                                            context,
+                                            if (r.isSuccess) "Cache geleert" else "Fehler beim Leeren",
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    }
+                                }) { Text("Leeren") }
+                            },
+                            dismissButton = { TextButton(onClick = { confirmClearCache = false }) { Text("Abbrechen") } },
+                        )
+                    }
                 }
                 if (info != null) {
                     Spacer(Modifier.size(6.dp))

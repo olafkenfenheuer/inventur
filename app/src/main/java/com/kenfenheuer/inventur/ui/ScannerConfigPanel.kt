@@ -32,6 +32,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -424,6 +425,12 @@ private fun PickerValue(row: SettingRow, options: List<Pair<String, String>>, on
 private fun RawValueEditor(row: SettingRow, onWrite: (SettingRow, String) -> Unit) {
     // key = row.value, damit der Editor nach erfolgreichem Schreiben den neuen Stand zeigt.
     var text by remember(row.name, row.value) { mutableStateOf(row.value) }
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val activity = context.findMainActivity()
+        activity?.scanCaptureEnabled = false
+        onDispose { activity?.scanCaptureEnabled = true }
+    }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         OutlinedTextField(
             value = text,
