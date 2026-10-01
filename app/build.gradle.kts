@@ -41,7 +41,7 @@ android {
         create("classic") {
             dimension = "edition"
             applicationId = "com.kenfenheuer.inventur"
-            versionCode = 17
+            versionCode = 18
             versionName = "2.4"
             resValue("string", "app_name", "Inventur")
         }
@@ -50,7 +50,7 @@ android {
                 dimension = "edition"
                 applicationId = "com.kenfenheuer.inventurpro"
                 versionCode = 8
-                versionName = "1.6"
+                versionName = "2.4"
                 resValue("string", "app_name", "Inventur Pro")
             }
         }

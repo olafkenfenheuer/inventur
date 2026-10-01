@@ -4,7 +4,7 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
-## [2.4 (17)] – 2026-10-01
+## [2.4 (18)] – 2026-10-01
 
 ### Hinzugefügt
 - **Bildschirm anlassen:** Solange die App offen ist, bleibt der Bildschirm an (Menü → „Bildschirm anlassen", Standard: an).
