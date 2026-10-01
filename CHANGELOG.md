@@ -4,7 +4,7 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
-## [Unveröffentlicht]
+## [2.5.1 (20)] – 2026-10-01
 
 ### Behoben
 - Scanner-Karte zeigte „Unbekanntes Gerät“, wenn das Geräteobjekt neu angelegt wurde (z. B. nach „Trennen“): Das SDK liefert den Namen nur aus der Suche. Die App merkt sich den Namen je Adresse und zeigt sonst „Scanner …0DEE“.
