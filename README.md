@@ -21,18 +21,17 @@ Für Inventuren mit **mehreren Geräten oder Personen** trägt jeder Scan eine f
 wählbare **Geräte-/Benutzerkennung** (CSV-Spalte „Erfasst von") – so bleibt beim
 Zusammenführen der Listen nachvollziehbar, woher jeder Eintrag stammt.
 
-Der Scanner koppelt sich als Bluetooth-Tastatur (**HID-Modus**) und „tippt" jede
-Inventarnummer gefolgt von Enter – die App fängt diese Eingaben ab und trägt sie
-automatisch in die Liste ein. Ein separater Bildschirm „Scannereinstellungen"
-nutzt das [Inateck Scanner SDK](https://github.com/Inateck-Technology-Inc/android_sdk),
-um den BCST-47 zu verbinden, seinen Status zu prüfen (Akku, Version) und ihn
-vollständig zu konfigurieren – inklusive der Moduswechsel-QR-Codes direkt auf dem
-Display. Die Konfiguration ist dabei auch erreichbar, während der Scanner nur im
-HID-Tastaturmodus gekoppelt ist: die App verbindet sich für den Zugriff
-automatisch im Hintergrund per Bluetooth-LE, ohne den Tastaturmodus zu
-unterbrechen. Die Einstellungen sind nach Kategorien gegliedert (Scan-Modus,
-Barcode-Typ, Datenverarbeitung, Codierung, Cache), und der Scanner bestätigt
-jede Änderung mit einem hörbaren Ton.
+Der Scanner arbeitet in einem von zwei Modi: als Bluetooth-Tastatur (**Einfacher
+Ausgabemodus**, „tippt" jede Inventarnummer gefolgt von Enter, die App fängt diese
+Eingaben ab) oder im **Expertenmodus**, in dem er jeden Scan als Bluetooth-Nachricht
+an die App sendet – zuverlässiger, auch bei ausgeschaltetem Bildschirm und mit der
+App im Hintergrund (Dienst im Vordergrund mit Benachrichtigung). Die
+Scannereinstellungen nutzen das
+[Inateck Scanner SDK](https://github.com/Inateck-Technology-Inc/android_sdk), um den
+BCST-47 zu verbinden, den Modus umzustellen (geführt oder per Schalter), ihn
+vollständig zu konfigurieren, Einstellungen zu sichern und wieder einzuspielen, den
+Scanner-Cache (Inventurmodus) per USB-Kabel hochzuladen und den Scanner per Barcode
+auf Werkseinstellungen zurückzusetzen.
 
 📖 **[Bedienungsanleitung](https://app.kenfenheuer.net/google/inventur-anleitung.html)** ·
 🎬 **[Demo-Video](https://github.com/olafkenfenheuer/inventur/releases/download/v2.1/inventur-2.1-demo.mp4)** ·
@@ -121,23 +120,32 @@ jede Änderung mit einem hörbaren Ton.
 - **CSV-Export & Teilen** (`;`-getrennt, UTF-8 mit BOM für Excel; Spalten:
   Nr, Inventarnummer, Zeitpunkt, **Erfasst von**, Bemerkung).
 - **Persistenz:** die Liste übersteht einen Neustart (lokale JSON-Datei).
-- **Scannereinstellungen** mit Live-**HID-Statusbanner** (zeigt, ob Scans
-  ankommen, inkl. Direktlink zu den Bluetooth-Einstellungen), **Modus-QR-Codes**
-  zum Umschalten GATT ↔ HID direkt vom Display sowie einer vollständigen
+- **Scannereinstellungen:** Scanner verbinden (automatisch beim Öffnen),
+  **Expertenmodus** (Schalter und geführte Umstellung), Hinweis „Kein Scanner
+  verbunden" mit Direktlink zu den Bluetooth-Einstellungen, vollständige
   **Konfiguration nach Kategorien** (Scan-Modus, Barcode-Typ, Datenverarbeitung,
   Codierungseinstellungen, Cache-Verwaltung – Werte-Semantik laut offizieller
-  SDK-Doku). Die Konfiguration ist auch im HID-Tastaturmodus erreichbar (Verbindung
-  im Hintergrund, ohne Moduswechsel) und der Scanner bestätigt jede Änderung mit
-  einem Ton.
+  SDK-Doku; der Scanner bestätigt jede Änderung mit einem Ton),
+  **Einstellungen sichern / Sicherung einspielen** und **Scanner zurücksetzen
+  (Werkseinstellungen)** mit vier Barcodes direkt auf dem Display.
+- **Scans im Hintergrund (Expertenmodus):** Die App liest die Bluetooth-Nachrichten
+  des Scanners mit und hält die Verbindung über einen Dienst im Vordergrund auch bei
+  ausgeschaltetem Bildschirm; bei Abbruch verbindet sie selbst neu. Nach dem
+  Umstellen findet die App den Scanner unter seiner neuen Adresse selbst wieder.
+- **Scanner-Cache (Inventurmodus):** Scannen ohne Verbindung; der Cache wird per
+  USB-Kabel hochgeladen (Popup beim Anstecken) und danach optional geleert.
+- **Bildschirm anlassen**, solange die App offen ist (Menü, Standard: an).
 - **Startbildschirm & „Über die App"** mit App-Version und Copyright-Hinweis
   (Menü oben rechts).
 
 ## So funktioniert das Scannen
 
 1. In der Kopfzeile die **Geräte-/Benutzerkennung** festlegen (z. B. „Tablet-1").
-2. BCST-47 im **HID-Tastaturmodus** mit dem Gerät koppeln – das Statusbanner in
-   den Scannereinstellungen wird grün, sobald Scans ankommen (bei Bedarf über die
-   Modus-QR-Codes bzw. „HID + Enter" umstellen).
+2. BCST-47 verbinden: entweder als Bluetooth-Tastatur koppeln (**Einfacher
+   Ausgabemodus**; das Statusbanner wird grün, sobald Scans ankommen) oder in den
+   Scannereinstellungen auf den **Expertenmodus** umstellen (die App verbindet den
+   Scanner selbst, „Scans im Hintergrund empfangen" einschalten; den Scanner dann
+   **nicht** in den Android-Bluetooth-Einstellungen koppeln).
 3. App öffnen und scannen – die Inventarnummern erscheinen automatisch mit
    Zeitstempel in der Liste.
 4. Ist ein Barcode nicht lesbar, über den Button **„Nummer eingeben"** die
@@ -149,13 +157,23 @@ jede Änderung mit einem hörbaren Ton.
 ## Architektur-Hinweis
 
 Das Inateck BLE-SDK (`inateck-scanner-ble-2.0.0`) besitzt **keinen öffentlichen
-Echtzeit-Callback für gescannte Barcodes** – interne Notify-Daten werden verworfen,
-wenn gerade kein Konfigurationsbefehl läuft. Das SDK dient daher nur zum Verbinden,
-Abfragen und Konfigurieren. Der eigentliche Scan-Empfang läuft über den
-**HID-Tastaturmodus**. Deshalb der Hybrid-Ansatz.
+Echtzeit-Callback für gescannte Barcodes** – es dient zum Verbinden, Abfragen und
+Konfigurieren. Der Scan-Empfang läuft deshalb auf zwei Wegen:
+
+1. **Einfacher Ausgabemodus:** Der Scanner ist eine Bluetooth-Tastatur;
+   `MainActivity.dispatchKeyEvent` fängt die Eingaben ab.
+2. **Expertenmodus:** Der Scanner sendet Scans als GATT-Nachricht
+   (`C1 | Länge | Barcode | Prüfsumme`). Die App hängt sich dazu in den
+   Notify-Callback des SDK (`NotifyScanHook`, ändert die SDK-Befehle nicht) und wertet
+   die Rahmen aus (`ScanFrameParser`); `ScannerService` hält die Verbindung als
+   Dienst im Vordergrund. Der Modus wird über die Scanner-Einstellung `bt_mode_low`
+   umgeschaltet (0 = Expertenmodus, 1 = Einfacher Ausgabemodus).
+
+Den **Scanner-Cache** liefert der Scanner nur über das USB-Kabel (generisches
+HID-Gerät `0483:5750`); die App liest die Berichte selbst (`UsbCacheReader`).
 
 Die nativen SDK-Bibliotheken (`libscanner_cmd.so`, JNA) liegen nur für
-**arm64-v8a** vor (`abiFilters += "arm64-v8a"`). Der HID-/CSV-/Inventur-Kern
+**arm64-v8a** vor (`abiFilters += "arm64-v8a"`). Der Inventur-/CSV-Kern
 läuft dennoch auf jedem Gerät; nur die nativen Konfigurationsbefehle brauchen
 arm64.
 
@@ -163,15 +181,20 @@ arm64.
 
 - Kotlin, Jetpack Compose, Material 3
 - minSdk 24, targetSdk 36
-- SDK-Jars unter `app/libs/`, native Libs unter `app/src/main/jniLibs/arm64-v8a/`
+- SDK-Jar unter `app/libs/`, JNA als Gradle-Abhängigkeit (`@aar`, 16-KB-Seiten-kompatibel)
 - Abhängigkeiten: Inateck BLE-SDK, FastBle, Gson
 
 ## Build
 
 ```bash
-./gradlew :app:assembleDebug
+./gradlew assembleClassicDebug      # Debug-APK (Kennung com.kenfenheuer.inventur.debug)
+./gradlew testClassicDebugUnitTest
+./gradlew assembleClassicRelease bundleClassicRelease   # benötigt keystore.properties (nicht im Git)
 ```
 
 Benötigt ein vollständiges JDK 17+ (in Android Studio wird automatisch das
 gebündelte JBR genutzt). Die fertige APK liegt danach unter
-`app/build/outputs/apk/debug/app-debug.apk`.
+`app/build/outputs/apk/classic/debug/app-classic-debug.apk`.
+
+Der Kern dieser App wird gemeinsam mit [Inventur Pro](https://github.com/olafkenfenheuer/inventur-pro)
+(mit Server-Abgleich) entwickelt und von dort in dieses Repo gespiegelt.
