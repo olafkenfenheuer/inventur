@@ -4,6 +4,11 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [Unveröffentlicht]
+
+### Behoben
+- Kopfzeile auf schmalen Bildschirmen (z. B. 360 dp, Samsung XCover4s): Das Zahnrad wurde vom langen Kennungs-Text an den Rand gedrückt und war nicht mehr zu sehen. Der Kennungs-Text steht jetzt im Titelbereich der Leiste, bekommt nur den Restplatz neben den Icons und bricht in bis zu zwei Zeilen um. Der Hinweis ohne Kennung lautet kürzer „Kennung festlegen“.
+
 ## [2.5.2 (21)] – 2026-10-01
 
 ### Behoben

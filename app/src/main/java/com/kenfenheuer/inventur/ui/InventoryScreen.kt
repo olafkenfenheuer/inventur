@@ -166,39 +166,38 @@ fun InventoryScreen(
 
     // Schmale Screens (Handy hochkant): ohne App-Titel passen Kennung und alle
     // Icons in eine Zeile; lange Kennungen werden dort begrenzt dargestellt.
-    val compactBar = widthDp < 600
 
     Scaffold(
         topBar = {
             TopAppBar(
-                // Bewusst ohne App-Namen – der Platz gehoert der Kennung
-                // und den Aktions-Icons.
-                title = {},
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
-                actions = {
-                    // Aktuelle Geraete-/Benutzerkennung direkt in der Kopfzeile,
-                    // antippbar zum Aendern (wie das Badge-Icon daneben). Ohne
-                    // Kennung steht hier ein roter Hinweis, damit sie bei
-                    // Mehrgeraete-Inventuren nicht vergessen wird.
+                // Die Geraete-/Benutzerkennung steht im Titelbereich: Er bekommt nur den Platz, den die Aktions-Icons uebrig lassen,
+                // und der Text bricht dort um (max. 2 Zeilen). So bleiben alle Icons auch auf schmalen Bildschirmen
+                // (z. B. 360 dp) sichtbar. Antippbar zum Aendern (wie das Badge-Icon daneben). Ohne Kennung steht hier ein
+                // roter Hinweis, damit sie bei Mehrgeraete-Inventuren nicht vergessen wird.
+                title = {
                     Text(
-                        text = deviceLabel.ifEmpty { "Keine Geräte-/Benutzerkennung – hier festlegen" },
+                        text = deviceLabel.ifEmpty { "Kennung festlegen" },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.End,
                         color = if (deviceLabel.isNotEmpty()) {
                             MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
                             MaterialTheme.colorScheme.error
                         },
                         modifier = Modifier
-                            .then(if (compactBar) Modifier.widthIn(max = 160.dp) else Modifier)
+                            .fillMaxWidth()
                             .clickable { showDeviceDialog = true }
                             .padding(horizontal = 4.dp),
                     )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
+                actions = {
                     IconButton(onClick = { showDeviceDialog = true }) {
                         Icon(
                             Icons.Filled.Badge,
