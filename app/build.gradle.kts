@@ -41,16 +41,16 @@ android {
         create("classic") {
             dimension = "edition"
             applicationId = "com.kenfenheuer.inventur"
-            versionCode = 21
-            versionName = "2.5.2"
+            versionCode = 22
+            versionName = "2.5.3"
             resValue("string", "app_name", "Inventur")
         }
         if (hasPro) {
             create("pro") {
                 dimension = "edition"
                 applicationId = "com.kenfenheuer.inventurpro"
-                versionCode = 11
-                versionName = "2.5.2"
+                versionCode = 12
+                versionName = "2.5.3"
                 resValue("string", "app_name", "Inventur Pro")
             }
         }
