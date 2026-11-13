@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -80,6 +82,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -123,6 +126,7 @@ fun InventoryScreen(
     val context = LocalContext.current
     val items by viewModel.items.collectAsState()
     val lastScanned by viewModel.lastScanned.collectAsState()
+    val highlightedId by viewModel.highlightedId.collectAsState()
     val deviceLabel by viewModel.deviceLabel.collectAsState()
     val keepScreenOn by viewModel.keepScreenOn.collectAsState()
 
@@ -329,6 +333,7 @@ fun InventoryScreen(
                                     ScanRow(
                                         entry = entry,
                                         isDuplicate = entry.barcode in duplicates,
+                                        isHighlighted = entry.id == highlightedId,
                                         onEditNote = { noteTarget = entry },
                                         onDelete = { deleteTarget = entry },
                                     )
@@ -386,6 +391,7 @@ fun InventoryScreen(
                                 ScanRow(
                                     entry = entry,
                                     isDuplicate = entry.barcode in duplicates,
+                                        isHighlighted = entry.id == highlightedId,
                                     onEditNote = { noteTarget = entry },
                                     onDelete = { deleteTarget = entry },
                                 )
@@ -649,18 +655,23 @@ private fun EmptyHint(modifier: Modifier = Modifier) {
 private fun ScanRow(
     entry: ScanEntry,
     isDuplicate: Boolean,
+    isHighlighted: Boolean,
     onEditNote: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    // Frisch gescannter Eintrag: ca. 10 s hervorgehoben, Farbe blendet weich ein/aus.
+    val highlightColor = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) Color(0xFF2E5E33) else Color(0xFFC8E6C9)
+    val normal = if (isDuplicate) MaterialTheme.colorScheme.errorContainer else CardDefaults.cardColors().containerColor
+    val containerColor by animateColorAsState(
+        targetValue = if (isHighlighted) highlightColor else normal,
+        animationSpec = tween(durationMillis = 400),
+        label = "scanRowColor",
+    )
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(onClick = {}, onLongClick = onEditNote),
-        colors = if (isDuplicate) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
-        } else {
-            CardDefaults.cardColors()
-        },
+        colors = CardDefaults.cardColors(containerColor = containerColor),
     ) {
         Row(
             modifier = Modifier

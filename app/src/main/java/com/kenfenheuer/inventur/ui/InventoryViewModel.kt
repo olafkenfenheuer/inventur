@@ -8,10 +8,13 @@ import com.kenfenheuer.inventur.data.ScanEntry
 import com.kenfenheuer.inventur.data.SyncController
 import com.kenfenheuer.inventur.data.SyncFeature
 import com.kenfenheuer.inventur.data.SyncHost
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class InventoryViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -27,6 +30,20 @@ class InventoryViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _lastScanned = MutableStateFlow<String?>(null)
     val lastScanned: StateFlow<String?> = _lastScanned.asStateFlow()
+
+    /** Id des zuletzt gescannten Eintrags; wird in der Liste ca. 10 s farblich hervorgehoben. */
+    private val _highlightedId = MutableStateFlow<String?>(null)
+    val highlightedId: StateFlow<String?> = _highlightedId.asStateFlow()
+    private var highlightJob: Job? = null
+
+    private fun highlight(id: String) {
+        _highlightedId.value = id
+        highlightJob?.cancel()
+        highlightJob = viewModelScope.launch {
+            delay(HIGHLIGHT_MILLIS)
+            _highlightedId.value = null
+        }
+    }
 
     /**
      * Geraete-/Benutzerkennung dieses Geraets. Wird jedem neuen Scan mitgegeben,
@@ -82,6 +99,7 @@ class InventoryViewModel(app: Application) : AndroidViewModel(app) {
         val entry = ScanEntry(barcode = barcode, timestamp = timestamp, device = _deviceLabel.value.ifEmpty { null }, dirty = true)
         change { listOf(entry) + it }
         _lastScanned.value = barcode
+        highlight(entry.id)
     }
 
     fun setNote(id: String, note: String) {
@@ -102,6 +120,8 @@ class InventoryViewModel(app: Application) : AndroidViewModel(app) {
     fun clearAll() {
         change { list -> sync.clearList(list) }
         _lastScanned.value = null
+        highlightJob?.cancel()
+        _highlightedId.value = null
     }
 
     /** Inventarnummern, die mehr als einmal vorkommen (versehentliche Doppelscans). */
@@ -125,6 +145,7 @@ class InventoryViewModel(app: Application) : AndroidViewModel(app) {
         /** Inateck-Setup-Barcodes haben die Form `/*Name*/`. */
         fun isScannerCommand(code: String) = code.length >= 5 && code.startsWith("/*") && code.endsWith("*/")
 
+        const val HIGHLIGHT_MILLIS = 10_000L
         const val KEY_DEVICE_LABEL = "device_label"
         const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
     }

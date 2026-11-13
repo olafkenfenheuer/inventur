@@ -71,8 +71,14 @@ class ScannerService : Service() {
                     ?: sm.devices.singleOrNull()
                 when {
                     dev == null -> {
-                        update("Suche den Scanner …")
-                        if (!sm.isScanning.value) sm.startScan()
+                        // Gekoppelter Scanner braucht keine Suche: in die Liste aufnehmen, naechster Durchlauf verbindet (autoConnect).
+                        if (sm.findBondedScanner(this) != null) {
+                            sm.addBondedScanner(this)
+                            update("Verbinde mit dem Scanner …")
+                        } else {
+                            update("Suche den Scanner …")
+                            if (!sm.isScanning.value) sm.startScan()
+                        }
                     }
                     sm.isConnected(dev) -> {
                         update("Scanner verbunden – Scans werden empfangen")
@@ -87,13 +93,38 @@ class ScannerService : Service() {
                     }
                     dev.connectState == BleScannerConnectState.DISCONNECTED -> {
                         update("Verbinde mit dem Scanner …")
-                        sm.connect(dev) { }
+                        connectWithRetry(sm, dev)
                     }
                 }
             } catch (t: Throwable) {
                 Log.e(TAG, "Schleife", t)
             }
             delay(8000)
+        }
+    }
+
+    private var retrying = false
+
+    /**
+     * Verbindet; scheitert der Versuch (autoConnect-Fenster abgelaufen), wird sofort mit frischem SDK-Geraet neu begonnen.
+     * Das SDK laesst seinen Zustand nach einem Fehlschlag auf "verbindet" stehen – ohne das gaebe es bis zur Hängend-Erkennung
+     * ein Zeitfenster ohne laufenden Versuch, in dem ein geweckter Scanner nicht verbunden wird.
+     */
+    private fun connectWithRetry(sm: ScannerManager, dev: com.inateck.scanner.ble.BleScannerDevice) {
+        if (retrying) return
+        retrying = true
+        sm.connect(dev) { r ->
+            retrying = false
+            if (r.isFailure && scope.isActive) {
+                scope.launch {
+                    delay(1000) // kein enges Wiederholen, falls Bluetooth aus ist o. ae.
+                    if (!scope.isActive || retrying) return@launch
+                    val fresh = sm.resetDevice(dev)
+                    if (fresh.connectState == BleScannerConnectState.DISCONNECTED && !sm.isConnected(fresh)) {
+                        connectWithRetry(sm, fresh)
+                    }
+                }
+            }
         }
     }
 

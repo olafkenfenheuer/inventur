@@ -11,6 +11,7 @@ import com.clj.fastble.BleManager
 import com.clj.fastble.callback.BleReadCallback
 import com.clj.fastble.data.BleDevice
 import com.clj.fastble.exception.BleException
+import com.clj.fastble.scan.BleScanRuleConfig
 import com.inateck.scanner.ble.BleListManager
 import com.inateck.scanner.ble.BleMessager
 import com.inateck.scanner.ble.BleScannerConnectState
@@ -73,7 +74,7 @@ class ScannerManager {
         BleScannerConnectState.CONNECTED -> "verbunden"
         BleScannerConnectState.CONNECTING -> {
             val started = device.mac?.let { connectStarted[it] }
-            if (started != null && System.currentTimeMillis() - started < 15_000) "verbindet …" else "getrennt"
+            if (started != null && System.currentTimeMillis() - started < CONNECT_WINDOW_MS) "verbindet …" else "getrennt"
         }
         BleScannerConnectState.DISCONNECTING -> "trennt …"
         BleScannerConnectState.DISCONNECTED -> "getrennt"
@@ -137,10 +138,13 @@ class ScannerManager {
     @android.annotation.SuppressLint("MissingPermission")
     fun findBondedScanner(context: Context): BleScannerDevice? = try {
         val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+        val last = ScannerPrefs.lastMac(context)
         adapter?.bondedDevices
             ?.firstOrNull { bt ->
                 val n = bt.name.orEmpty()
-                n.startsWith("Nano") || n.contains("BCST", true) || n.contains("Inateck", true)
+                // Name allein reicht nicht: der Scanner kann auch anders heissen (z. B. "HPRT-0DEE") – dann zaehlt die gemerkte Adresse.
+                (last != null && bt.address == last) ||
+                    n.startsWith("Nano") || n.contains("BCST", true) || n.contains("Inateck", true)
             }
             ?.let { bt -> devices.firstOrNull { it.mac == bt.address } ?: BleScannerDevice(BleDevice(bt)) }
     } catch (t: Throwable) {
@@ -156,6 +160,23 @@ class ScannerManager {
                 devices.add(d)
                 bump()
             }
+        }
+    }
+
+    /**
+     * Stellt die Verbindung zum gemerkten, gekoppelten Scanner wieder her (App-Start/Vordergrund), ohne Suche.
+     * Tut nichts, wenn kein Scanner gemerkt ist, er schon verbunden ist oder gerade ein Versuch laeuft.
+     */
+    fun reconnectLast(context: Context) {
+        val ctx = context.applicationContext
+        val wanted = ScannerPrefs.lastMac(ctx) ?: return
+        addBondedScanner(ctx)
+        main.post {
+            val dev = devices.firstOrNull { it.mac == wanted } ?: return@post
+            if (dev.connectState != BleScannerConnectState.DISCONNECTED) return@post
+            val started = connectStarted[wanted]
+            if (started != null && System.currentTimeMillis() - started < CONNECT_WINDOW_MS) return@post
+            connect(dev) { }
         }
     }
 
@@ -191,8 +212,25 @@ class ScannerManager {
 
     private val connectStarted = HashMap<String, Long>()
 
+    /**
+     * Verbindungsversuch mit "autoConnect": Der Bluetooth-Stack wartet auf den Scanner und verbindet, sobald er wirbt (z. B. nach
+     * dem Wecken per Taste), statt nach 10 s aufzugeben. Das SDK (FastBle) liest das Flag aus der globalen Suchregel und setzt sie bei
+     * jeder Suche zurueck – deshalb direkt vor jedem Verbinden neu setzen, samt laengerem Zeitlimit.
+     */
+    private fun prepareAutoConnect() {
+        try {
+            val bm = BleManager.getInstance()
+            val timeout = bm.scanRuleConfig?.scanTimeOut ?: 10_000L
+            bm.initScanRule(BleScanRuleConfig.Builder().setAutoConnect(true).setScanTimeOut(timeout).build())
+            bm.setConnectOverTime(CONNECT_WINDOW_MS)
+        } catch (t: Throwable) {
+            Log.w(TAG, "autoConnect nicht gesetzt: $t")
+        }
+    }
+
     fun connect(device: BleScannerDevice, onResult: (Result<Unit>) -> Unit) {
         device.mac?.let { connectStarted[it] = System.currentTimeMillis() }
+        prepareAutoConnect()
         try {
             device.connect { result ->
                 main.post {
@@ -227,7 +265,7 @@ class ScannerManager {
     private val stateSince = HashMap<String, Pair<BleScannerConnectState, Long>>()
 
     /** true, wenn der Verbindungsstatus des Geraets laenger als [maxMs] in "verbindet"/"trennt" haengt. */
-    fun isStuck(device: BleScannerDevice, maxMs: Long = 25_000): Boolean {
+    fun isStuck(device: BleScannerDevice, maxMs: Long = CONNECT_WINDOW_MS + 15_000): Boolean {
         val mac = device.mac ?: return false
         val st = device.connectState
         if (st != BleScannerConnectState.CONNECTING && st != BleScannerConnectState.DISCONNECTING) {
@@ -439,6 +477,9 @@ class ScannerManager {
         val shared: ScannerManager by lazy { ScannerManager() }
 
         private const val TAG = "ScannerManager"
+
+        /** So lange darf ein Verbindungsversuch (autoConnect) warten, bevor er als gescheitert gilt. */
+        const val CONNECT_WINDOW_MS = 60_000L
 
         /** Nicht im SDK deklariertes Merkmal, dessen Lesezugriff den Quittungston ausloest. */
         private const val ACK_CHARACTERISTIC_UUID = "0000ff03-0000-1000-8000-00805f9b34fb"

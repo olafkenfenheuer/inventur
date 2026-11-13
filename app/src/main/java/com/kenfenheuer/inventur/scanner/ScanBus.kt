@@ -69,7 +69,13 @@ object ScanBus {
 object ScannerPrefs {
     private fun p(context: Context) = context.applicationContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
-    fun backgroundEnabled(context: Context): Boolean = p(context).getBoolean("background_scanner", false)
+    /**
+     * Hintergrunddienst fuer die Scanner-Verbindung: immer an, sobald ein Scanner verbunden war (sonst verbindet er sich nach
+     * dem Aus- und Einschalten nicht von selbst neu). Ein frueher gespeicherter Aus-Wert gilt bewusst nicht mehr; der Schalter
+     * in den Scannereinstellungen stoppt den Dienst nur bis zum naechsten App-Start.
+     */
+    fun backgroundEnabled(context: Context): Boolean =
+        lastMac(context) != null || p(context).getBoolean("background_scanner", false)
     fun setBackgroundEnabled(context: Context, on: Boolean) = p(context).edit().putBoolean("background_scanner", on).apply()
 
     /** Angebot "auf Expertenmodus umstellen" nicht mehr zeigen. */

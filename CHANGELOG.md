@@ -4,6 +4,15 @@ Alle nennenswerten Änderungen an der App **Inventur**.
 Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/);
 Versionierung nach `versionName (versionCode)`.
 
+## [2.6.0 (23)] – 2026-11-13
+
+### Neu
+- Frisch gescannter Eintrag wird 10 Sekunden lang grün hinterlegt (hell/dunkel angepasst, weiches Ein-/Ausblenden). Gilt für Scanner, Kamera und manuelle Eingabe; ein neuer Scan verschiebt die Markierung, doppelte Einträge bleiben rot.
+
+### Behoben
+- Scanner verbindet sich nach dem Aus- und Wiedereinschalten (z. B. automatische Abschaltung, Wecken per Taste) selbst wieder: Der Hintergrunddienst läuft jetzt immer, sobald ein Scanner verbunden war, und die App verbindet beim Öffnen den gemerkten Scanner. Der gekoppelte Scanner wird auch erkannt, wenn er anders als „Nano …“/„BCST …“/„Inateck …“ heißt, und zwar über die gemerkte Adresse.
+- Verbindungsversuche nutzen „autoConnect“ mit 60 s Fenster und beginnen nach einem Fehlschlag sofort neu; die Dauersuche im Dienst entfällt, solange der Scanner gekoppelt ist.
+
 ## [2.5.3 (22)] – 2026-10-02
 
 ### Behoben

@@ -38,6 +38,12 @@ class MainActivity : ComponentActivity() {
      */
     var scanCaptureEnabled: Boolean = true
 
+    override fun onStart() {
+        super.onStart()
+        // Scanner nach Aus-/Einschalten wieder verbinden, sobald die App in den Vordergrund kommt.
+        com.kenfenheuer.inventur.scanner.ScannerManager.shared.also { it.init(this) }.reconnectLast(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
